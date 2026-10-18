@@ -1,6 +1,6 @@
 import { expect, test } from './offline'
 
-test('同一天已读旧记录的用户仍看到新发布提醒，并能查看本次四项调整', async ({ page }) => {
+test('已读旧记录的用户仍看到新发布提醒，并能查看本次海图导入修复', async ({ page }) => {
   await page.addInitScript(() => {
     localStorage.setItem('onboarding-seen', '1')
     localStorage.setItem('announce-ahk-retired', '1')
@@ -11,10 +11,11 @@ test('同一天已读旧记录的用户仍看到新发布提醒，并能查看�
   await expect(button).toHaveClass(/unseen/)
   await button.click()
   const rows = page.locator('.updates-list .update-title')
-  await expect(rows.nth(0)).toHaveText('紧凑边界选择与通货图标')
-  await expect(rows.nth(1)).toHaveText('逐步复制操作保持可见')
-  await expect(rows.nth(2)).toHaveText('连续导入反馈更清楚')
-  await expect(rows.nth(3)).toHaveText('完成航程前核查保留海图')
+  await expect(rows.nth(0)).toHaveText('兼容同类海图词缀措辞')
+  await expect(rows.nth(1)).toHaveText('修复罪魂牢笼海图导入')
+  await expect(rows.nth(2)).toHaveText('紧凑边界选择与通货图标')
+  await expect(rows.nth(3)).toHaveText('逐步复制操作保持可见')
+  await expect(page.locator('.updates-list')).toContainText('包含一个／两个／二个')
   await expect(page.locator('.updates-list')).toContainText('真实出现权重')
   await page.keyboard.press('Escape')
   await expect(button).not.toHaveClass(/unseen/)

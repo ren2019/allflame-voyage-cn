@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import samples from '../../samples/charted.zh-CN.txt?raw'
+import tormentedCage from '../../samples/charted-tormented-cage.zh-CN.txt?raw'
 import { isChartClipboardText, parseChartText } from './parser'
 
 const originals = samples.trim().split(/\n\s*(?=物品类别: 海图)/)
@@ -7,6 +8,39 @@ export const first = originals[0]
 export const second = originals[1]
 
 describe('mainland client import through the public parser', () => {
+  it.each([
+    ['相邻区域包含一个额外的保险箱', 'adj-box-1'],
+    ['相邻区域包含两个额外的瓶中信', 'adj-msg-2'],
+  ])('imports derived equivalent count wording without changing the stored implicit: %s', (implicit, id) => {
+    const text = tormentedCage.replace('相邻区域包含一个额外罪魂牢笼 — 数值不可调整', implicit)
+    const result = parseChartText(text)
+    expect(result.rejected).toEqual([])
+    expect(result.charts).toHaveLength(1)
+    expect(result.charts[0]).toMatchObject({ modIds: [id], implicitText: implicit })
+  })
+  it.each(['LF', 'CRLF'])('imports the reported chart with a Chinese-numbered adjacent Tormented Cage (%s)', (newline) => {
+    const text = newline === 'CRLF' ? tormentedCage.replace(/\n/g, '\r\n') : tormentedCage
+    const result = parseChartText(text)
+    expect(result.rejected).toEqual([])
+    expect(result.charts).toHaveLength(1)
+    expect(result.charts[0]).toMatchObject({
+      name: '海洋 航行 珊瑚密林海图', level: 83, areaType: 'undersea-groves',
+      shape: 'Crossing', edges: [true, true, true, true], modIds: ['adj-spirit-1'],
+      implicitText: '相邻区域包含一个额外罪魂牢笼 — 数值不可调整',
+      rewards: [{ stat: 'quantity', percent: 142 }, { stat: 'sulphur', percent: 30 }, { stat: 'rarity', percent: 22 }],
+      rawText: [
+        '怪物无法被嘲讽 — 数值不可调整',
+        '怪物的行动速度无法被减速至基础以下',
+        '怪物的移动速度无法被减速至基础以下 — 数值不可调整',
+        '怪物获得相当于其物理伤害 10(10-14)% 的额外混沌伤害',
+        '怪物击中时造成 2 秒的死亡凋零',
+        '怪物将生命上限的 60(51-80)% 转化为额外能量护盾上限',
+        '怪物有 80% 的几率避免元素异常状态',
+        '区域内有感电地面，使受到的伤害提高 10%',
+      ].join('\n'),
+    })
+    expect(isChartClipboardText(text)).toBe(true)
+  })
   it('imports the first real client chart with its calibrated adjacent effect', () => {
     const result = parseChartText(first)
     expect(result.rejected).toEqual([])

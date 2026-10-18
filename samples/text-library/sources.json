@@ -140,5 +140,16 @@
     "capture": "client-verbatim",
     "summary": "First three exact user-provided advanced-copy charts from 临时 1.md; not constructed data.",
     "originalFile": "临时 1.md"
+  },
+  {
+    "sourceId": "client-tormented-cage-2026-10-18",
+    "url": null,
+    "snapshotPath": "samples/charted-tormented-cage.zh-CN.txt",
+    "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142",
+    "retrievedAt": "2026-10-18",
+    "sourceVersion": "unknown",
+    "capture": "client-verbatim",
+    "summary": "User-reported failed chart import; exact mainland advanced copy with 一个额外罪魂牢笼. Client patch unknown.",
+    "originalFile": "user-provided clipboard text"
   }
 ]

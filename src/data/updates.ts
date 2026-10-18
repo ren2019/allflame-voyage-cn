@@ -12,6 +12,18 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    date: '2026-10-18',
+    tag: 'reworked',
+    title: '兼容同类海图词缀措辞',
+    detail: '海图导入统一识别“包含一个／两个／二个”等一至九的计数写法，以及“个额外／个额外的”差异。数量、档位、作用范围和效果名称仍须匹配，避免把不同词缀混为一条。',
+  },
+  {
+    date: '2026-10-18',
+    tag: 'reworked',
+    title: '修复罪魂牢笼海图导入',
+    detail: '导入海图时支持国服实际复制的“相邻区域包含一个额外罪魂牢笼”，与词库中的“1 个”映射为同一效果；珊瑚密林交叉海图可正常加入库存。',
+  },
+  {
     date: '2026-10-16',
     tag: 'reworked',
     title: '紧凑边界选择与通货图标',
