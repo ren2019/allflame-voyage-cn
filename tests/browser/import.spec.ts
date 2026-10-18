@@ -5,6 +5,7 @@ import type { AppState } from '../../src/logic/storage'
 const samples = readFileSync(new URL('../../samples/charted.zh-CN.txt', import.meta.url), 'utf8')
 const [first, second] = samples.trim().split(/\n\s*(?=物品类别: 海图)/)
 const extraSamples = readFileSync(new URL('../../samples/charted-extra-shapes.zh-CN.txt', import.meta.url), 'utf8')
+const tormentedCage = readFileSync(new URL('../../samples/charted-tormented-cage.zh-CN.txt', import.meta.url), 'utf8')
 const [third] = extraSamples.trim().split(/\n\s*(?=物品类别: 海图)/)
 const unknown = first.replace(/(\{ 基底属性 \}\n)[^\n]+/, '$1明确未知的测试航行词缀')
 
@@ -36,6 +37,36 @@ async function pasteCharts(page: Page, text: string) {
     document.dispatchEvent(new ClipboardEvent('paste', { clipboardData, bubbles: true }))
   }, text)
 }
+
+for (const control of ['paste', 'button']) {
+  test(`reported Tormented Cage chart imports through ${control} and retains its fields in backup`, async ({ page }) => {
+    const text = tormentedCage.replace(/\n/g, '\r\n')
+    await (control === 'paste' ? pasteCharts(page, text) : importCharts(page, text))
+    await expect(page.getByRole('status')).toHaveText('已导入 1 张海图：海洋 航行 珊瑚密林海图')
+    await expect(page.locator('.chart-grid .chart-sq')).toHaveCount(1)
+    const state = await exportState(page)
+    expect(state.pool).toHaveLength(1)
+    expect(state.pool[0]).toMatchObject({
+      name: '海洋 航行 珊瑚密林海图', level: 83, areaType: 'undersea-groves',
+      shape: 'Crossing', edges: [true, true, true, true], modIds: ['adj-spirit-1'],
+      implicitText: '相邻区域包含一个额外罪魂牢笼 — 数值不可调整',
+      rewards: [{ stat: 'quantity', percent: 142 }, { stat: 'sulphur', percent: 30 }, { stat: 'rarity', percent: 22 }],
+    })
+  })
+}
+
+test('equivalent numeral and particle wording imports without broad fuzzy matching', async ({ page }) => {
+  const implicit = '相邻区域包含两个额外的瓶中信'
+  const text = tormentedCage.replace('相邻区域包含一个额外罪魂牢笼 — 数值不可调整', implicit)
+  await importCharts(page, text)
+  await expect(page.getByRole('status')).toHaveText('已导入 1 张海图：海洋 航行 珊瑚密林海图')
+  const state = await exportState(page)
+  expect(state.pool).toHaveLength(1)
+  expect(state.pool[0]).toMatchObject({ modIds: ['adj-msg-2'], implicitText: implicit })
+  await importCharts(page, text.replace('相邻区域包含', '所有航行区域包含'))
+  await expect(page.getByRole('status')).toHaveText('拒绝 1 项无法识别')
+  await expect(page.locator('.chart-grid .chart-sq')).toHaveCount(1)
+})
 
 test('consecutive single imports announce the actual chart and rotate success wording across both controls', async ({ page }) => {
   const status = page.getByRole('status')

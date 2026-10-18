@@ -999,18 +999,27 @@
           "url": "https://poedb.tw/us/Maiden_Voyage",
           "locator": "MapDeepWaterChartMods / exact description: Adjacent Areas contain 1 additional cages of Tormented Spirits\nlocal deepwater mod applies to adjacent charts [1]",
           "snapshotSha256": "d49e577fd06ed07543065f899931cfc4b909375b20c75cd4e4534f5aa6c4ddce"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / revealed implicit / 相邻区域包含一个额外罪魂牢笼 — 数值不可调整",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
       "sourceVersion": "3.29 (visible league toolbar; exact patch unknown)",
       "provenance": "poedb-table",
-      "status": "source-only",
+      "status": "confirmed",
       "mappingBasis": "reviewed-semantics",
-      "clientSampleRefs": [],
+      "clientSampleRefs": [
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
+      ],
       "notes": [
         "Independently selected by bilingual mechanic, numerical tier, scope and required level; no positional bilingual join. Native mod/stat ID unavailable in captured table."
       ],
-      "repositoryEnText": "Adjacent Areas contain an additional cage of Tormented Spirits"
+      "repositoryEnText": "Adjacent Areas contain an additional cage of Tormented Spirits",
+      "clientText": "相邻区域包含一个额外罪魂牢笼 — 数值不可调整"
     },
     {
       "kind": "chart-implicit",
@@ -6022,6 +6031,12 @@
           "url": null,
           "locator": "sample-3 / explicit self reward",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / explicit self reward",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -6033,7 +6048,8 @@
         "samples/charted.zh-CN.txt#sample-1",
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": [
         "Client verifies self-area reward wording/value; table still conflicts on scope. Parser must use header total once."
@@ -7467,6 +7483,12 @@
           "url": null,
           "locator": "sample-3 / destination / 海底林地",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / destination / 海底林地",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -7475,7 +7497,8 @@
       "status": "confirmed",
       "mappingBasis": "metadata",
       "clientSampleRefs": [
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -7761,6 +7784,12 @@
           "url": null,
           "locator": "sample-3 / 海图形状：交叉",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / 海图形状：交叉",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -7769,7 +7798,8 @@
       "status": "confirmed",
       "mappingBasis": "reviewed-semantics",
       "clientSampleRefs": [
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -7815,6 +7845,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 物品类别: 海图",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 物品类别: 海图",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -7827,7 +7863,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -7873,6 +7910,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 稀 有 度: 稀有",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 稀 有 度: 稀有",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -7885,7 +7928,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -7931,6 +7975,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 区域等级:",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 区域等级:",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -7943,7 +7993,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -7989,6 +8040,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 物品等级:",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 物品等级:",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8001,7 +8058,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -8047,6 +8105,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 物品数量:",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 物品数量:",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8059,7 +8123,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -8099,6 +8164,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 亡者硫磺:",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 亡者硫磺:",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8110,7 +8181,8 @@
         "samples/charted.zh-CN.txt#sample-1",
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -8200,6 +8272,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: { 基底属性 }",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: { 基底属性 }",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8212,7 +8290,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -8258,6 +8337,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: 海图形状：",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 海图形状：",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8270,7 +8355,8 @@
         "samples/charted.zh-CN.txt#sample-2",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -8310,6 +8396,12 @@
           "url": null,
           "locator": "sample-3 / exact copied field: — 数值不可调整",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: — 数值不可调整",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8321,7 +8413,8 @@
         "samples/charted.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-1",
         "samples/charted-extra-shapes.zh-CN.txt#sample-2",
-        "samples/charted-extra-shapes.zh-CN.txt#sample-3"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-3",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     },
@@ -8343,6 +8436,12 @@
           "url": null,
           "locator": "sample-2 / exact copied field: 物品稀有度:",
           "snapshotSha256": "937d3cbcd16b6cb0ba74fd714d7c940784972d1af9d1c87d784d0ed3433deb22"
+        },
+        {
+          "sourceId": "client-tormented-cage-2026-10-18",
+          "url": null,
+          "locator": "sample-1 / exact copied field: 物品稀有度:",
+          "snapshotSha256": "34a6138a52c68c5e24f7b0cfbfa8ff556ebb812e6ffdf04b164f5cc12c7f3142"
         }
       ],
       "retrievedAt": "2026-10-14",
@@ -8351,7 +8450,8 @@
       "status": "confirmed",
       "mappingBasis": "reviewed-semantics",
       "clientSampleRefs": [
-        "samples/charted-extra-shapes.zh-CN.txt#sample-2"
+        "samples/charted-extra-shapes.zh-CN.txt#sample-2",
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
       ],
       "notes": []
     }

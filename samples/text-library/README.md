@@ -10,7 +10,7 @@
 
 应用消费入口：`src/data/textLibrary.ts` 的 `TEXT_LIBRARY` 与 `matchChineseChartImplicit(text): string | null`。匹配仅限已取得的 62 个航行隐式模板（confirmed/source-only），支持已见实际 roll/range 和不可调整后缀；对有区间的来源模板，仍要求该区间，普通复制只给实际数值时返回 null（可能存在档位重叠），不声称已兼容所有客户端复制变体。不会接受 reward 冲突、边界条目或原版未匹配机制。边界展示可按 `kind === 'border'` 获取原文和状态，目的地按 `kind === 'destination'` 获取 ID。`cnText === null` 不应自动翻译为“已校准”客户端原文。
 
-`confirmed` = 真实国服客户端校准；`source-only` = 正式来源已复核但客户端未校准；`conflict` = 版本/档位/作用域或文字差异；`missing` = 逐项检索后仍未获得对应证据；`unmatched` = 来源可见但没有原版内部映射。网页模板与 `samples/charted.zh-CN.txt`（原2张）及 `samples/charted-extra-shapes.zh-CN.txt`（新3张）的真实复制全文分开保存。客户端source manifest保留原始文件名、null URL和逐文件SHA256；逐条引用定位至对应sample。派生测试仅在测试代码中创建，不计入真实采集数量。
+`confirmed` = 真实国服客户端校准；`source-only` = 正式来源已复核但客户端未校准；`conflict` = 版本/档位/作用域或文字差异；`missing` = 逐项检索后仍未获得对应证据；`unmatched` = 来源可见但没有原版内部映射。网页模板与 `samples/charted.zh-CN.txt`（原2张）、`samples/charted-extra-shapes.zh-CN.txt`（追加3张）及 `samples/charted-tormented-cage.zh-CN.txt`（罪魂牢笼1张）的真实复制全文分开保存。匹配器也接受 confirmed 记录独立保存的 `clientText`，以覆盖已采集的“一个”与网页“1 个”措辞差异；另提供有限的等价归一化：“包含”后、“个”前的单字一至九（含“两”）转为同值阿拉伯数字，“个额外的”与“个额外”等价；只作用于匹配键，原文不改。派生写法不标记为真实客户端证据，仍保留精确数量、区间、作用范围、效果名称及唯一匹配要求。客户端source manifest保留原始文件名、null URL和逐文件SHA256；逐条引用定位至对应sample。派生测试仅在测试代码中创建，不计入真实采集数量。
 
 离线重放和验证（Python 标准库，无网络）：
 

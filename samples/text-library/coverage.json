@@ -18,8 +18,8 @@
       "conflict": 1
     },
     "chart-implicit": {
-      "source-only": 57,
-      "confirmed": 5
+      "source-only": 56,
+      "confirmed": 6
     },
     "destination": {
       "source-only": 11,
@@ -198,9 +198,9 @@
     "cm-gold-70"
   ],
   "clientCalibration": {
-    "sampleCount": 5,
+    "sampleCount": 6,
     "confirmed": {
-      "chart-implicit": 5,
+      "chart-implicit": 6,
       "destination": 4,
       "shape": 5,
       "field": 11

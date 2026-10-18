@@ -11,7 +11,7 @@
     "voyage": 19,
     "border": 64,
     "chartRewards": 15,
-    "verifiedModMappings": 5,
+    "verifiedModMappings": 6,
     "requiredDestinationIds": 15,
     "sourceDestinationPairs": 15,
     "clientDestinationPairs": 4,
@@ -302,6 +302,23 @@
         "samples/charted-extra-shapes.zh-CN.txt#sample-3"
       ],
       "status": "client-and-poedb"
+    },
+    {
+      "internalId": "adj-spirit-1",
+      "cnText": "相邻区域包含 1 个额外罪魂牢笼",
+      "enText": "Adjacent Areas contain 1 additional cages of Tormented Spirits",
+      "clientText": "相邻区域包含一个额外罪魂牢笼 — 数值不可调整",
+      "scope": "adjacent",
+      "sourceModId": null,
+      "sourceStatIds": [],
+      "cnUrl": "https://poedb.tw/cn/Maiden_Voyage",
+      "enUrl": "https://poedb.tw/us/Maiden_Voyage",
+      "sourceLocator": "MapDeepWaterChartMods / exact description: 相邻区域包含 1 个额外罪魂牢笼\nlocal deepwater mod applies to adjacent charts [1]",
+      "mappingBasis": "reviewed-semantics",
+      "clientSampleRefs": [
+        "samples/charted-tormented-cage.zh-CN.txt#sample-1"
+      ],
+      "status": "client-and-poedb"
     }
   ],
   "pendingModIds": [
@@ -341,7 +358,6 @@
     "adj-atziri",
     "adj-gold-1",
     "adj-gold-2",
-    "adj-spirit-1",
     "adj-spirit-2",
     "adj-divbox-1",
     "adj-divbox-2",
@@ -571,6 +587,13 @@
       "originalFile": "临时 1.md",
       "retrievedAt": "2026-10-14",
       "summary": "First three exact user-provided advanced-copy charts from 临时 1.md; not constructed data."
+    },
+    {
+      "sourceId": "client-tormented-cage-2026-10-18",
+      "samplePath": "samples/charted-tormented-cage.zh-CN.txt",
+      "retrievedAt": "2026-10-18",
+      "originalFile": "user-provided clipboard text",
+      "summary": "User-reported failed chart import; exact mainland advanced copy with 一个额外罪魂牢笼. Client patch unknown."
     }
   ]
 }
