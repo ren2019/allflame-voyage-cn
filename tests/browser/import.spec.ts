@@ -253,3 +253,22 @@ test('国服十二槽直接更新保留全量、部分、全失败和手动补�
   expect((await exportState(page)).borders).toEqual(['b-pack-3', 'b-pack-2', 'b-pack-3', 'b-rare-1', 'b-rareconn-2', 'b-quantconn-2',
     'b-divine', 'b-crabboss', 'b-keep-2', 'b-anchor-1', 'b-curr-3', 'b-divine'])
 })
+
+for (const newline of ['LF', 'CRLF']) {
+  test(`逐张带 BOM 的国服海图批次保留全部实物与字段，重复导入仍去重（${newline}）`, async ({ page }) => {
+    const batch = `\uFEFF${first}\n\n\uFEFF${second}`
+    await pasteCharts(page, newline === 'CRLF' ? batch.replace(/\n/g, '\r\n') : batch)
+    await expect(page.getByRole('status')).toHaveText('已导入 2 张海图：航海 冒险 珊瑚暗礁海图、航海 深入 金沙海床海图')
+    const state = await exportState(page)
+    expect(state.pool).toHaveLength(2)
+    expect(state.pool).toEqual([
+      expect.objectContaining({ name: '航海 冒险 珊瑚暗礁海图', level: 83, areaType: 'clam-infested-shelf', shape: 'End',
+        modIds: ['adj-crab-1'], rewards: [{ stat: 'quantity', percent: 110 }, { stat: 'sulphur', percent: 75 }] }),
+      expect.objectContaining({ name: '航海 深入 金沙海床海图', level: 83, areaType: 'abyssal-plain', shape: 'Straight',
+        modIds: ['voy-pack-1'], rewards: [{ stat: 'quantity', percent: 110 }, { stat: 'sulphur', percent: 60 }, { stat: 'packsize', percent: 5 }] }),
+    ])
+    await pasteCharts(page, samples)
+    await expect(page.getByRole('status')).toContainText('跳过 2 张已在库存中的海图')
+    expect((await exportState(page)).pool).toEqual(state.pool)
+  })
+}

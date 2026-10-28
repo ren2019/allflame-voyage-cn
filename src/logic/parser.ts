@@ -138,7 +138,9 @@ const ITEM_START_RE = /(?=^[ \t]*(?:Item Class|아이템 종류|物品类别)\s*
 const SEPARATOR_RE = /^-{3,}$/
 
 function normalizeClipboardText(text: string): string {
-  return text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
+  // A collector batch preserves each copied item's encoding marker, so BOMs
+  // can appear before later item headers as well as at the start of the batch.
+  return text.replace(/\r\n?/g, '\n').replace(/^([ \t]*)\uFEFF/gm, '$1')
 }
 
 function normalizeLookupText(text: string): string {
