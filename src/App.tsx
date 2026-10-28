@@ -553,20 +553,20 @@ export default function App() {
         <div className="onboard-backdrop" onClick={dismissAhkNotice}>
           <div className="onboard ahk-notice" onClick={(e) => e.stopPropagation()}>
             <div className="panel-title">
-              📥 原版 Windows 批量导入脚本已停用
+              📥 Windows 海图与边界采集说明
               <span className="spacer" />
               <button onClick={dismissAhkNotice}>✕</button>
             </div>
             <p className="tut-body">
-              原版批量导入脚本已移除并保持停用。原作者因游戏宏规则和适用范围未明确而停止提供该脚本。
+              旧版自动批量操作脚本保持停用。现在提供的国服被动采集器不会向游戏发送按键或点击，所有游戏操作仍由玩家自己完成。
             </p>
             <p className="tut-body">
               国服流程使用手动复制：<strong>在国服游戏中 Ctrl+Alt+C 高级复制海图，再在本页 Ctrl+V 导入</strong>。
-              已导入的重复扫描会按原版规则跳过。边界则逐个点击摆盘外圈槽位，搜索并选择对应词缀。
+              已导入的重复扫描会按原版规则跳过。边界可手动选择，也可使用采集器截图读取。
             </p>
             <p className="tut-body">
-              导入面板仍保留原版英文海图与边界采集器参考。它不向游戏发送输入，
-              但未做国服采集或 OCR 适配；本版国服使用手动复制和边界选择。
+              在导入说明中下载国服被动采集器：F7 开启采集并显示计数浮窗，按住 Alt 后按 F8 读取边界；
+              再按 F7 结束，回到网页 Ctrl+V。截图和简体中文 OCR 均在本机执行，采集错误在浮窗提示。
             </p>
             <div className="sw-actions">
               <span className="spacer" />

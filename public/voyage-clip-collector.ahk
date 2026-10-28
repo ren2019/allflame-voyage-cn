@@ -1,7 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 Persistent
-CoordMode "ToolTip", "Screen"
 
 ; =====================================================================
 ;  Allflame Voyage - chart & border collector  (AutoHotkey v2)
@@ -15,7 +14,7 @@ CoordMode "ToolTip", "Screen"
 ;
 ;  F7 - chart copy mode
 ;   1. Press F7 - copy mode ON, a counter appears.
-;   2. In PoE, hover each chart and press Ctrl+C yourself. The counter
+;   2. In PoE, hover each chart and press Ctrl+C yourself (Ctrl+Alt+C for advanced text). The counter
 ;      ticks up per chart (non-charts and double-copies are ignored).
 ;   3. Press F7 again - everything collected is on the clipboard.
 ;
@@ -27,7 +26,7 @@ CoordMode "ToolTip", "Screen"
 ;      or joins the F7 batch if copy mode is on.
 ;
 ;  Then ONE Ctrl+V on the solver page imports charts + borders.
-;  English and Korean clients are both supported.
+;  English, Korean and mainland Simplified Chinese text are supported.
 ;
 ;  Shift+F7 mutes/unmutes the beeps (the on-screen counter still works).
 ;
@@ -35,15 +34,17 @@ CoordMode "ToolTip", "Screen"
 ;  or its hotkeys won't register while the game window is focused.
 ; =====================================================================
 
-CollectorVersion := "2026-08-20"
-PoeWinTitle := "Path of Exile"
+CollectorVersion := "2026-10-28-cn-readable"
 
 Collecting := false
 Collected := []
 LastCaptured := ""
+LastCopiedLanguage := ""
 BorderBlob := ""
 BorderCount := 0
 Muted := false
+StatusMessage := ""
+Scanning := false
 
 ; every sound goes through here so Shift+F7 can silence the lot
 Beep(freq, dur) {
@@ -55,9 +56,24 @@ Beep(freq, dur) {
 ToggleMute(*) {
     global Muted
     Muted := !Muted
-    ToolTip Muted ? "🔇 Beeps muted - Shift+F7 to unmute (the on-screen counter still works)"
-        : "🔊 Beeps back on"
-    SetTimer () => ToolTip(), -2500
+    ShowStatus(Muted ? "🔇 提示音已关闭；Shift+F7 恢复，浮窗继续显示。" : "🔊 提示音已恢复。", 2500)
+}
+
+; One timer restores the counter instead of clearing the whole floating tip.
+; Cancelling it also prevents an older message from erasing a newer error.
+ShowStatus(message, duration := 0) {
+    global StatusMessage
+    SetTimer ClearStatus, 0
+    StatusMessage := message
+    ShowCounter()
+    if (duration > 0)
+        SetTimer ClearStatus, -duration
+}
+
+ClearStatus() {
+    global StatusMessage
+    StatusMessage := ""
+    ShowCounter()
 }
 
 ; %TEMP% can arrive as an 8.3 short path (C:\Users\HARDPC~1\...) and WinRT
@@ -84,30 +100,62 @@ CleanupHelper(*) {
 }
 OnExit CleanupHelper
 
-; a chart's item text starts with its class header (English or Korean)
+; Inspect the header only; keep the collected advanced-copy text verbatim.
 IsChartText(text) {
-    return RegExMatch(text, "im)^\s*(Item Class\s*[:：]\s*Charts?|아이템 종류\s*[:：]\s*해도)")
+    text := LTrim(text, Chr(0xFEFF))
+    return RegExMatch(text, "im)^[ \t]*(Item Class[ \t]*[:：][ \t]*Charts?|아이템 종류[ \t]*[:：][ \t]*해도|物品类别[ \t]*[:：][ \t]*海图)[ \t]*\r?$")
 }
 
 ShowCounter() {
-    global Collecting, Collected, BorderCount
-    if Collecting
-        ToolTip "📋 Copy mode: " Collected.Length " chart" (Collected.Length = 1 ? "" : "s")
-            . (BorderCount ? "  +  " BorderCount "/12 borders ✓" : "")
-            . " collected`nCtrl+C charts / F8 for borders - F7 to finish",
-            A_ScreenWidth // 2 - 160, 40
+    global Collecting, Collected, BorderCount, StatusMessage
+    text := ""
+    if Collecting {
+        text := "📋 采集中：" Collected.Length " 张海图"
+            . (BorderCount ? "；已读取 " BorderCount "/12 处边界文字" : "")
+            . "`nCtrl+C 复制海图；Ctrl+Alt+C 高级复制。`nF8 读取边界；F7 结束。"
+    }
+    if (StatusMessage != "")
+        text .= (text = "" ? "" : "`n") StatusMessage
+    ShowCollectorStatus(text)
+}
+
+; A larger status panel keeps the original counter/error role without taking
+; focus or intercepting the player's mouse. Recreate the text control so its
+; height follows wrapped messages instead of clipping longer OCR errors.
+ShowCollectorStatus(text) {
+    static panel := 0
+    if IsObject(panel)
+        panel.Destroy()
+    panel := 0
+    if (text = "")
+        return
+    panel := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000020", "航程采集状态")
+    panel.BackColor := "202630"
+    panel.MarginX := 20
+    panel.MarginY := 14
+    panel.SetFont("s16 cFFFFFF", "Microsoft YaHei UI")
+    width := Min(640, Floor(A_ScreenWidth * 96 / A_ScreenDPI) - 48)
+    panel.AddText("w" width, text)
+    ; A layered window plus WS_EX_TRANSPARENT passes mouse events through.
+    WinSetTransparent 255, panel.Hwnd
+    panel.Show("NoActivate AutoSize xCenter y40")
 }
 
 OnClipChanged(dataType) {
-    global Collecting, Collected, LastCaptured
+    global Collecting, Collected, LastCaptured, LastCopiedLanguage
     if (!Collecting || dataType != 1)
         return
     text := ""
     try text := A_Clipboard
+    catch {
+        ShowStatus("读取剪贴板失败，请重新手动复制海图。", 5000)
+        return
+    }
     if (text = "")
         return
     if !IsChartText(text)
         return
+    LastCopiedLanguage := ChartLanguage(text)
     ; double-tap protection: the SAME chart copied twice in a row is one
     ; chart (two different-but-identical charts still count when they are
     ; copied non-consecutively)
@@ -126,13 +174,12 @@ ToggleCollect(*) {
         Collecting := true
         Collected := []
         LastCaptured := ""
-        ShowCounter()
+        ShowStatus("")
         return
     }
     Collecting := false
     if (Collected.Length = 0 && BorderBlob = "") {
-        ToolTip "Copy mode off - nothing collected."
-        SetTimer () => ToolTip(), -2500
+        ShowStatus("采集已结束，本次没有采集到内容。", 2500)
         return
     }
     combined := ""
@@ -140,28 +187,66 @@ ToggleCollect(*) {
         combined .= (combined = "" ? "" : "`n`n") chart
     if (BorderBlob != "")
         combined .= (combined = "" ? "" : "`n") BorderBlob
-    A_Clipboard := combined
-    note := "✅ " Collected.Length " chart" (Collected.Length = 1 ? "" : "s")
+    try A_Clipboard := combined
+    catch {
+        Collecting := true
+        ShowStatus("写入剪贴板失败，已保留本批内容；请再按 F7 重试。")
+        return
+    }
+    note := "✅ " Collected.Length " 张海图"
     if (BorderCount)
-        note .= " + " BorderCount "/12 borders"
-    ToolTip note " on the clipboard - Ctrl+V on the solver page to import everything.",
-        A_ScreenWidth // 2 - 180, 40
-    SetTimer () => ToolTip(), -6000
+        note .= " + " BorderCount "/12 处边界文字"
+    ShowStatus(note "已放入剪贴板，请在网页 Ctrl+V 导入。`n边界词缀是否匹配，以网页结果为准。", 6000)
     Beep(1200, 90)
     BorderBlob := ""
     BorderCount := 0
 }
 
-; Korean PoE client ships as *_KG.exe - prefer the Korean OCR pack for it.
-; (Reading the window's process name is a passive query, not an input.)
-PreferredOcrLanguage() {
-    global PoeWinTitle
-    try {
-        processName := WinGetProcessName(PoeWinTitle)
-        if RegExMatch(processName, "i)_KG\.exe$")
-            return "ko-KR"
+; Process matching works independently of localized window titles, and avoids
+; matching a browser page or launcher whose title happens to mention PoE.
+FindPoeWindow() {
+    for hwnd in WinGetList() {
+        try {
+            processName := WinGetProcessName(hwnd)
+            if RegExMatch(processName, "i)^PathOfExile(?:_x64)?(?:Steam)?(?:_KG)?\.exe$")
+                && WinGetMinMax(hwnd) != -1
+                return hwnd
+        }
     }
-    return ""
+    return 0
+}
+
+ChartLanguage(text) {
+    text := LTrim(text, Chr(0xFEFF))
+    if RegExMatch(text, "im)^[ \t]*物品类别[ \t]*[:：]")
+        return "zh-CN"
+    if RegExMatch(text, "im)^[ \t]*아이템 종류[ \t]*[:：]")
+        return "ko-KR"
+    return "en"
+}
+
+PreferredOcrLanguage(hwnd := 0) {
+    global LastCopiedLanguage
+    if hwnd {
+        try {
+            if RegExMatch(WinGetProcessName(hwnd), "i)_KG\.exe$")
+                return "ko-KR"
+            if InStr(WinGetTitle(hwnd), "流放之路")
+                return "zh-CN"
+        }
+    }
+    observed := LastCopiedLanguage
+    try {
+        clip := A_Clipboard
+        if IsChartText(clip)
+            observed := ChartLanguage(clip)
+    }
+    if (observed != "")
+        return observed = "en" ? "" : observed
+    ; CN and English can share an executable/title. This CN collector defaults
+    ; to Simplified Chinese for standalone F8; English copied chart text selects
+    ; the original English-first OCR fallback, without adding a settings UI.
+    return "zh-CN"
 }
 
 ; The 12 border-tooltip anchor points scale with the game window's height
@@ -178,88 +263,105 @@ AnchorFractions := [
 
 RunBorderScan(testImage := "", testW := 0, testH := 0) {
     global
-    if (HelperPid && ProcessExist(HelperPid)) {
-        ToolTip "A border scan is already running - one moment..."
-        SetTimer () => ToolTip(), -2000
+    if Scanning {
+        ShowStatus("边界采集仍在运行，请稍候。")
         return
     }
-    winX := 0, winY := 0
-    winW := testW ? testW : A_ScreenWidth
-    winH := testH ? testH : A_ScreenHeight
-    if (testImage = "") {
-        if WinExist(PoeWinTitle)
-            WinGetPos &winX, &winY, &winW, &winH, PoeWinTitle  ; passive read
-        ToolTip "📸 Keep holding Alt so all 12 border tooltips stay visible...",
-            A_ScreenWidth // 2 - 160, 40
-    }
-    points := ""
-    cx := winW / 2.0
-    cy := winH / 2.0
-    for , f in AnchorFractions
-        points .= (points = "" ? "" : ";") Round(cx + f[1] * winH) "," Round(cy + f[2] * winH)
-    try FileDelete HelperOut
-    try FileDelete HelperShot
-    try FileDelete HelperPs1
-    FileAppend BorderHelperPs(), HelperPs1, "UTF-8"
-    quote := Chr(34)
-    command := "powershell.exe -NoProfile -ExecutionPolicy Bypass -File " quote HelperPs1 quote
-        . " -Left " winX " -Top " winY " -Width " winW " -Height " winH
-        . " -PointSpec " quote points quote
-        . " -PreferredLanguage " quote PreferredOcrLanguage() quote
-        . " -WorkPng " quote HelperPng quote
-        . " -ShotMarker " quote HelperShot quote
-        . " -OutputPath " quote HelperOut quote
-        . (testImage != "" ? " -ImagePath " quote testImage quote : "")
-    Run command, , "Hide", &HelperPid
-    ; beep the moment the screenshot is on disk so Alt can be released early -
-    ; the OCR itself takes a few more seconds
-    deadline := A_TickCount + 20000
-    while (!FileExist(HelperShot) && ProcessExist(HelperPid) && A_TickCount < deadline)
-        Sleep 50
-    if FileExist(HelperShot) {
-        Beep(700, 90)
-        ToolTip "Screenshot taken - you can let go of Alt.`nReading the 12 borders with Windows OCR (all local, nothing uploaded)...",
-            A_ScreenWidth // 2 - 180, 40
-    }
-    deadline := A_TickCount + 120000
-    while (!FileExist(HelperOut) && ProcessExist(HelperPid) && A_TickCount < deadline)
+    Scanning := true
+    try {
+        winX := 0, winY := 0
+        winW := testW ? testW : A_ScreenWidth
+        winH := testH ? testH : A_ScreenHeight
+        poeHwnd := 0
+        if (testImage = "") {
+            poeHwnd := FindPoeWindow()
+            if !poeHwnd
+                throw Error("未找到可见的流放之路游戏窗口。请打开游戏，并确认游戏与采集器权限一致后重试。")
+            WinGetPos &winX, &winY, &winW, &winH, poeHwnd  ; passive read
+            if (winW <= 0 || winH <= 0)
+                throw Error("游戏窗口尺寸无效，请切回游戏后重试。")
+            ShowStatus("📸 请继续按住 Alt，让十二条边界提示保持可见。")
+        }
+        points := ""
+        cx := winW / 2.0
+        cy := winH / 2.0
+        for , f in AnchorFractions
+            points .= (points = "" ? "" : ";") Round(cx + f[1] * winH) "," Round(cy + f[2] * winH)
+        try FileDelete HelperOut
+        try FileDelete HelperShot
+        try FileDelete HelperPs1
+        FileAppend BorderHelperPs(), HelperPs1, "UTF-8"
+        quote := Chr(34)
+        command := "powershell.exe -NoProfile -ExecutionPolicy Bypass -File " quote HelperPs1 quote
+            . " -Left " winX " -Top " winY " -Width " winW " -Height " winH
+            . " -PointSpec " quote points quote
+            . " -PreferredLanguage " quote PreferredOcrLanguage(poeHwnd) quote
+            . " -WorkPng " quote HelperPng quote
+            . " -ShotMarker " quote HelperShot quote
+            . " -OutputPath " quote HelperOut quote
+            . (testImage != "" ? " -ImagePath " quote testImage quote : "")
+        ; Hide only our status panel so it cannot cover a border tooltip.
+        ; Screenshot completion or the error path restores the current status.
+        ShowCollectorStatus("")
+        Run command, , "Hide", &HelperPid
+        ; beep the moment the screenshot is on disk so Alt can be released early -
+        ; the OCR itself takes a few more seconds
+        deadline := A_TickCount + 20000
+        while (!FileExist(HelperShot) && ProcessExist(HelperPid) && A_TickCount < deadline)
+            Sleep 50
+        if FileExist(HelperShot) {
+            Beep(700, 90)
+            ShowStatus("截图已完成，可以松开 Alt。`n正在本机读取边界文字，不上传图片。")
+        } else if !FileExist(HelperOut) {
+            throw Error("截图未完成或等待超时。可以松开 Alt，请切回游戏后重试。")
+        }
+        deadline := A_TickCount + 120000
+        while (!FileExist(HelperOut) && ProcessExist(HelperPid) && A_TickCount < deadline)
+            Sleep 100
         Sleep 100
-    Sleep 100
-    blob := ""
-    try blob := Trim(FileRead(HelperOut, "UTF-8"), " `t`r`n")
-    HelperPid := 0
-    if (blob = "" || InStr(blob, "HELPER ERROR")) {
-        ToolTip "Border scan failed - you can still enter borders by clicking the board slots.`n"
-            . SubStr(blob = "" ? "(no result - timed out?)" : blob, 1, 220)
-        SetTimer () => ToolTip(), -7000
+        blob := ""
+        try blob := Trim(FileRead(HelperOut, "UTF-8"), " `t`r`n")
+        if (blob = "" || InStr(blob, "HELPER ERROR")) {
+            throw Error(blob = "" ? "未收到 OCR 结果或等待超时。" : SubStr(blob, 1, 500))
+        }
+        total := 0
+        p := 1
+        while (p := InStr(blob, "=== VOYAGE BORDER", true, p)) {
+            total++
+            p += 17
+        }
+        errors := 0
+        p := 1
+        while (p := InStr(blob, "OCR ERROR", true, p)) {
+            errors++
+            p += 9
+        }
+        good := total - errors
+        if (total = 0)
+            throw Error("OCR 没有输出边界文字。请按住 Alt 显示边界后重试。")
+        BorderBlob := blob
+        BorderCount := good
+        note := "已读取 " good "/12 处边界文字，词缀匹配以网页结果为准。"
+        if (errors && RegExMatch(blob, "s)OCR ERROR:[ \t]*(.*?)\r?\n=== END VOYAGE BORDER", &failure))
+            note .= "`n" SubStr(Trim(failure[1], " `t`r`n"), 1, 400)
+        if (good < 12)
+            note .= "`n未读取的位置可在网页手动选择。"
+        if Collecting {
+            Beep(good ? 1000 : 300, 90)
+            ShowStatus(note)
+        } else {
+            A_Clipboard := blob
+            Beep(good ? 1200 : 300, 90)
+            ShowStatus(note "`n已放入剪贴板，请在网页 Ctrl+V 导入。", good = 12 ? 6000 : 0)
+        }
+    } catch Error as err {
+        ShowStatus("边界采集失败，可以松开 Alt；仍可在网页手动选择。`n" SubStr(err.Message, 1, 500))
         Beep(300, 150)
-        return
-    }
-    total := 0
-    p := 1
-    while (p := InStr(blob, "=== VOYAGE BORDER", true, p)) {
-        total++
-        p += 17
-    }
-    errors := 0
-    p := 1
-    while (p := InStr(blob, "OCR ERROR", true, p)) {
-        errors++
-        p += 9
-    }
-    good := total - errors
-    BorderBlob := blob
-    BorderCount := good
-    if Collecting {
-        Beep(1000, 90)
-        ShowCounter()
-    } else {
-        A_Clipboard := blob
-        Beep(1200, 90)
-        ToolTip "✅ Read " good "/12 borders - Ctrl+V on the solver page to import them."
-            . (good < 12 ? "`nMissed ones can be picked by clicking their board slot." : ""),
-            A_ScreenWidth // 2 - 180, 40
-        SetTimer () => ToolTip(), -6000
+    } finally {
+        if (HelperPid && ProcessExist(HelperPid))
+            try ProcessClose HelperPid
+        HelperPid := 0
+        Scanning := false
     }
 }
 
@@ -272,12 +374,12 @@ F7:: ToggleCollect()
 *F8:: RunBorderScan()
 +F7:: ToggleMute()
 
-A_TrayMenu.Insert("1&", "Toggle copy mode (F7)", ToggleCollect)
-A_TrayMenu.Insert("2&", "Scan borders now (F8)", RunBorderScan)
-A_TrayMenu.Insert("3&", "Mute beeps (Shift+F7)", ToggleMute)
-A_TrayMenu.Default := "Toggle copy mode (F7)"
-A_IconTip := "Voyage collector - F7 charts, F8 borders"
-TrayTip "Voyage collector ready", "F7 = chart copy mode, F8 = border screenshot scan. This tool never sends any input to the game.", 1
+A_TrayMenu.Insert("1&", "开启或结束海图采集 (F7)", ToggleCollect)
+A_TrayMenu.Insert("2&", "读取边界 (F8)", (*) => RunBorderScan())
+A_TrayMenu.Insert("3&", "切换提示音 (Shift+F7)", ToggleMute)
+A_TrayMenu.Default := "开启或结束海图采集 (F7)"
+A_IconTip := "航程采集器：F7 海图，F8 边界"
+ShowStatus("航程采集器已就绪：F7 采集海图，F8 读取边界。`n请手动 Ctrl+C 复制海图，或 Ctrl+Alt+C 高级复制；脚本不向游戏发送输入。", 6000)
 
 ; ---------------------------------------------------------------------
 ; The border-reading PowerShell helper. Runs Windows OCR locally on a
@@ -571,16 +673,20 @@ function New-OcrEngine {
 
     $available = @([Windows.Media.Ocr.OcrEngine]::AvailableRecognizerLanguages)
 
-    # Localized PoE clients need a matching OCR engine. Windows can expose the
-    # Korean pack as either "ko" or a regional tag such as "ko-KR", so match
-    # both the exact tag and its primary language before considering fallback.
+    # Installed recognizers expose regional/script tags, not capability names.
+    # Never accept zh-Hant/zh-TW/zh-HK as Simplified Chinese just because their
+    # primary language is also zh. Korean still accepts ko and ko-KR.
     if (-not [string]::IsNullOrWhiteSpace($PreferredLanguage)) {
         $preferredTag = $PreferredLanguage.Trim()
         $preferredPrimary = ($preferredTag -split '-', 2)[0]
         $preferred = @($available | Where-Object {
             $tag = $_.LanguageTag
             $primary = ($tag -split '-', 2)[0]
-            $tag -ieq $preferredTag -or $primary -ieq $preferredPrimary
+            if ($preferredPrimary -ieq 'zh') {
+                $tag -match '^zh-(Hans(?:-.*)?|CN|SG)$'
+            } else {
+                $tag -ieq $preferredTag -or $primary -ieq $preferredPrimary
+            }
         } | Sort-Object {
             if ($_.LanguageTag -ieq $preferredTag) { 0 }
             elseif ($_.LanguageTag -ieq $preferredPrimary) { 1 }
@@ -594,10 +700,13 @@ function New-OcrEngine {
             }
         }
 
-        throw ("Windows OCR language '$preferredTag' is not installed. " +
-            'Install the matching Windows language OCR feature. For Korean, open an elevated ' +
-            'Command Prompt and run: DISM /Online /Add-Capability ' +
-            '/CapabilityName:Language.OCR~~~ko-KR~0.0.1.0')
+        if ($preferredPrimary -ieq 'zh') {
+            throw ('缺少 Windows 简体中文 OCR 组件。请在 Windows 设置的简体中文语言选项中安装光学字符识别，或以管理员运行：' +
+                [Environment]::NewLine + 'DISM /Online /Add-Capability /CapabilityName:Language.OCR~~~zh-CN~0.0.1.0' +
+                [Environment]::NewLine + '安装后重新按 F8；边界也可在网页手动选择。')
+        }
+        throw ("缺少 Windows OCR 语言 '$preferredTag'。请安装对应语言的 OCR 组件。韩文可使用管理员命令：" +
+            'DISM /Online /Add-Capability /CapabilityName:Language.OCR~~~ko-KR~0.0.1.0')
     }
 
     # English clients keep the original English-first behavior. Do not require
@@ -771,7 +880,7 @@ try {
         [VoyageOcrImage]::Normalize($WorkPng, $prepared)
         $lines = @(Get-OcrLineRects $prepared $engine $scale 64.0)
     }
-    if ($lines.Count -eq 0) { throw 'Windows OCR found no border tooltips. Were all 12 visible (Alt held) when the beep came?' }
+    if ($lines.Count -eq 0) { throw '未读取到边界提示。请切回游戏，按住 Alt 显示全部十二条边界，再按 F8。' }
     # cluster vertically-adjacent, horizontally-overlapping lines
     $blocks = @()
     foreach ($line in ($lines | Sort-Object Y)) {
@@ -795,11 +904,12 @@ try {
     # Ground-loot labels are blue, blue passes the tooltip mask, and a
     # 13th text block then displaces a real tooltip in the 12-slot
     # assignment (issue #41: "HYDRASCALE BOOTS" stole a border). Every
-    # real border tooltip mentions adjacency in English or Korean, so
+    # real border tooltip mentions adjacency/areas/voyage, so
     # gate the clusters on that. A tooltip mangled beyond recognition
     # gets dropped here too, which just means a hover rescan - never a
     # loot label imported as a border.
-    $blocks = @($blocks | Where-Object { $_.Text -match 'adjacent|areas|voyage|인접|지역|항해' })
+    $blocks = @($blocks | Where-Object { ($_.Text -replace '\s+', '') -match 'adjacent|areas|voyage|인접|지역|항해|相邻|区域|航行|航程' })
+    if ($blocks.Count -eq 0) { throw '未找到边界词缀文字。请按住 Alt 显示全部十二条边界后重试；也可在网页手动选择。' }
     $points = @()
     foreach ($pair in $PointSpec.Split(';')) {
         $xy = $pair.Split(',')
@@ -810,7 +920,7 @@ try {
         if ($null -ne $assigned[$p]) {
             Add-Block $builder $p $blocks[$assigned[$p]].Text
         } else {
-            Add-Block $builder $p 'OCR ERROR: no tooltip found near this border.'
+            Add-Block $builder $p 'OCR ERROR: 此位置未读取到边界提示，请在网页手动选择。'
         }
     }
 } catch {

@@ -1,5 +1,6 @@
 import { BORDER_MODS } from '../data/mods'
 import { KOREAN_BORDER_MOD_EVIDENCE } from '../data/borderMods.ko'
+import { TEXT_LIBRARY } from '../data/textLibrary'
 import type { Borders } from '../types'
 import { emptyBorders } from '../types'
 
@@ -114,7 +115,45 @@ interface Match {
   exact: boolean
 }
 
+// Chinese OCR may insert spaces between every character or wrap within a word.
+// Match the complete tooltip, keeping digits, signs, percentages and scope
+// words exact: fuzzy edits could turn 降低 into 提高 or drop 按每条连接.
+const normalizeChineseBorder = (text: string): string => text
+  .normalize('NFKC')
+  .replace(/\\n/g, '\n')
+  .replace(/\s+/gu, '')
+  // Sentence punctuation is harmless, but deleting it between digits could
+  // turn an uncertain OCR value such as 1。6 into the valid 16% tier.
+  .replace(/[，。；：、！？!?;:]+/gu, (punctuation: string, offset: number, normalized: string) =>
+    /\d/.test(normalized[offset - 1] ?? '') && /\d/.test(normalized[offset + punctuation.length] ?? '')
+      ? punctuation : '',
+  )
+
+const chineseBorderVariants = TEXT_LIBRARY.records.flatMap((record) => {
+  if (record.kind !== 'border' || !record.cnText) return []
+  // The sulphur conflict concerns 死者 versus the chart header's 亡者,
+  // not this sentence's border ID. Accept only the acquired border wording;
+  // keep its conflict status and do not invent a client-confirmed alias.
+  const accepted = record.status === 'confirmed' || record.status === 'source-only' ||
+    (record.internalId === 'b-sulphdrop' && record.status === 'conflict')
+  const canonical = BORDER_MODS.find((mod) => mod.id === record.internalId)
+  if (!accepted || !canonical) return []
+  return [{ id: canonical.id, text: canonical.text, key: normalizeChineseBorder(record.cnText) }]
+})
+
+function matchChineseBorder(raw: string): Match | null {
+  const key = normalizeChineseBorder(raw)
+  const matches = chineseBorderVariants.filter((variant) => variant.key === key)
+  if (new Set(matches.map((match) => match.id)).size !== 1) return null
+  return { id: matches[0].id, text: matches[0].text, confidence: 1, exact: true }
+}
+
 function matchBorder(raw: string): Match | null {
+  // Keep Korean OCR's existing tolerance for occasional Han noise, while
+  // preventing Chinese text from entering the Latin/Korean fuzzy matcher.
+  if (/\p{Script=Han}/u.test(raw) && !/[\u3131-\u318e\uac00-\ud7a3]/u.test(raw)) {
+    return matchChineseBorder(raw)
+  }
   const candidates = candidateLines(raw)
   if (candidates.length === 0) return null
 

@@ -192,3 +192,97 @@ test('uncharted derived text stays in the existing uncharted summary category', 
   await expect(page.locator('.import-panel .muted.pad')).toHaveText('拒绝 1 张未测绘海图（先完成测绘以揭示航行词缀）')
   await expect(page.locator('.chart-grid .chart-sq')).toHaveCount(0)
 })
+
+// Derived collector payload from reviewed source wording; not a real OCR capture.
+test('国服边界文字随真实海图批次一次粘贴并直接导入指定位置', async ({ page }) => {
+  const border = '=== VOYAGE BORDER 4 ===\n相 邻 区 域 的 怪 物 群 规 模 提 高 １６ ％\n=== END VOYAGE BORDER ==='
+  await pasteCharts(page, `${samples}\n${extraSamples}\n${tormentedCage}\n${border}`.replace(/\n/g, '\r\n'))
+  const status = page.getByRole('status')
+  await expect(status).toContainText('已导入 6 张海图')
+  await expect(status).toContainText('已匹配 1/1 个边界词缀')
+  await expect(page.locator('[data-border-segment="4"]')).toHaveAttribute('title', '相邻区域的怪物群规模提高 16%')
+  const state = await exportState(page)
+  expect(state.pool).toHaveLength(6)
+  expect(state.pool.map(chart => chart.shape)).toEqual(['End', 'Straight', 'Corner', 'Junction', 'Crossing', 'Crossing'])
+  expect(state.borders).toEqual([null, null, null, null, 'b-pack-1', null, null, null, null, null, null, null])
+  await pasteCharts(page, `${samples}\n${extraSamples}\n${tormentedCage}\n${border}`)
+  await expect(status).toContainText('跳过 6 张已在库存中的海图')
+  expect((await exportState(page)).pool).toHaveLength(6)
+})
+
+test('中文边界数字被标点分隔时不猜档位，并保留原边界', async ({ page }) => {
+  const block = (text: string) => `=== VOYAGE BORDER 0 ===\n${text}\n=== END VOYAGE BORDER ===`
+  await pasteCharts(page, block('相邻区域的怪物群规模提高 24%'))
+  await expect(page.getByRole('status')).toHaveText('已匹配 1/1 个边界词缀')
+
+  await pasteCharts(page, block('相邻区域的怪物群规模提高 1。6%'))
+  await expect(page.getByRole('status')).toHaveText('已匹配 0/1 个边界词缀; 未识别边界悬停文本，已保留原有边界')
+  await expect(page.locator('[data-border-segment="0"]')).toHaveAttribute('title', '相邻区域的怪物群规模提高 24%')
+  expect((await exportState(page)).borders).toEqual(['b-pack-2', null, null, null, null, null, null, null, null, null, null, null])
+})
+
+// Source-derived 12-slot payload with literal expected IDs, independent of the matcher.
+test('国服十二槽直接更新保留全量、部分、全失败和手动补选的原版行为', async ({ page }) => {
+  const block = (index: number, text: string) => `=== VOYAGE BORDER ${index} ===\n${text}\n=== END VOYAGE BORDER ===`
+  const initial = Array.from({ length: 12 }, (_, index) => block(index, '相邻区域的怪物群规模提高 24%')).join('\n')
+  await pasteCharts(page, initial)
+  await expect(page.getByRole('status')).toHaveText('已匹配 12/12 个边界词缀')
+  expect((await exportState(page)).borders).toEqual(Array(12).fill('b-pack-2'))
+
+  const texts = [
+    '相邻区域的怪物群规模提高 16%',
+    '相邻区域的怪物群规模提高 24%',
+    '相邻区域的怪物群规模提高 32%',
+    '相邻区域的稀有怪物数量提高 50%',
+    '相邻区域中稀有怪物数量按每条连接提高 75%',
+    '相邻区域中找到的物品数量按每条连接降低 50%\n相邻区域中找到的物品数量提高 180%',
+    '相邻区域的稀有怪物掉落 1 个额外神圣石',
+    '相邻区域包含船长灾星',
+    '相邻海图在开始航行时有 50% 的几率不被消耗',
+    '相邻区域包含 2 个额外宝藏锚',
+    '相邻区域中找到的通货总增 100%',
+    'OCR ERROR: 未识别到边界文字',
+  ]
+  await pasteCharts(page, texts.map((text, index) => block(index, text)).join('\n'))
+  await expect(page.getByRole('status')).toHaveText('已匹配 11/12 个边界词缀; OCR 未匹配的边界位置：12')
+  const snapshot = ['b-pack-1', 'b-pack-2', 'b-pack-3', 'b-rare-1', 'b-rareconn-2', 'b-quantconn-2',
+    'b-divine', 'b-crabboss', 'b-keep-2', 'b-anchor-1', 'b-curr-3', null]
+  expect((await exportState(page)).borders).toEqual(snapshot)
+  for (const segment of [0, 4, 6, 9]) {
+    await expect(page.locator(`[data-border-segment="${segment}"]`)).toHaveAttribute('title', texts[segment])
+  }
+  await expect(page.locator('[data-border-segment="11"]')).toHaveText('·')
+
+  await pasteCharts(page, Array.from({ length: 12 }, (_, index) => block(index, '相邻区域包含未知首领')).join('\n'))
+  await expect(page.getByRole('status')).toHaveText('已匹配 0/12 个边界词缀; 未识别边界悬停文本，已保留原有边界')
+  expect((await exportState(page)).borders).toEqual(snapshot)
+
+  await pasteCharts(page, `${block(0, '相邻区域的怪物群规模提高 32%')}\n${block(1, '相邻区域的怪物群规模降低 24%')}`)
+  await expect(page.getByRole('status')).toHaveText('已匹配 1/2 个边界词缀; OCR 未匹配的边界位置：2')
+  expect((await exportState(page)).borders).toEqual(['b-pack-3', ...snapshot.slice(1)])
+
+  await page.locator('[data-border-segment="11"]').click()
+  await page.getByPlaceholder('搜索边界词缀…').fill('神圣石')
+  await page.locator('.bpop-item').filter({ hasText: '相邻区域的稀有怪物掉落 1 个额外神圣石' }).click()
+  expect((await exportState(page)).borders).toEqual(['b-pack-3', 'b-pack-2', 'b-pack-3', 'b-rare-1', 'b-rareconn-2', 'b-quantconn-2',
+    'b-divine', 'b-crabboss', 'b-keep-2', 'b-anchor-1', 'b-curr-3', 'b-divine'])
+})
+
+for (const newline of ['LF', 'CRLF']) {
+  test(`逐张带 BOM 的国服海图批次保留全部实物与字段，重复导入仍去重（${newline}）`, async ({ page }) => {
+    const batch = `\uFEFF${first}\n\n\uFEFF${second}`
+    await pasteCharts(page, newline === 'CRLF' ? batch.replace(/\n/g, '\r\n') : batch)
+    await expect(page.getByRole('status')).toHaveText('已导入 2 张海图：航海 冒险 珊瑚暗礁海图、航海 深入 金沙海床海图')
+    const state = await exportState(page)
+    expect(state.pool).toHaveLength(2)
+    expect(state.pool).toEqual([
+      expect.objectContaining({ name: '航海 冒险 珊瑚暗礁海图', level: 83, areaType: 'clam-infested-shelf', shape: 'End',
+        modIds: ['adj-crab-1'], rewards: [{ stat: 'quantity', percent: 110 }, { stat: 'sulphur', percent: 75 }] }),
+      expect.objectContaining({ name: '航海 深入 金沙海床海图', level: 83, areaType: 'abyssal-plain', shape: 'Straight',
+        modIds: ['voy-pack-1'], rewards: [{ stat: 'quantity', percent: 110 }, { stat: 'sulphur', percent: 60 }, { stat: 'packsize', percent: 5 }] }),
+    ])
+    await pasteCharts(page, samples)
+    await expect(page.getByRole('status')).toContainText('跳过 2 张已在库存中的海图')
+    expect((await exportState(page)).pool).toEqual(state.pool)
+  })
+}

@@ -214,6 +214,8 @@ const collector = fs
   .replace(/\r\n?/g, '\n')
 assert.match(collector, /OnClipboardChange/)
 assert.match(collector, /아이템 종류/, 'must recognise Korean chart headers')
+assert.match(collector, /物品类别/, 'downloaded collector must recognise mainland chart headers')
+assert.doesNotMatch(collector, /SetTimer\s+\(\)\s*=>\s*ToolTip\(\)/, 'transient messages must not erase an active F7 counter')
 assert.match(
   collector,
   /\*F8:: RunBorderScan/,
@@ -239,6 +241,8 @@ const psEnd = collector.indexOf('\n)"', psStart)
 assert.ok(psStart > 0 && psEnd > psStart, 'embedded helper not found')
 const helperPs = collector.slice(psStart + 'return "\n(\n'.length, psEnd)
 assert.ok(!helperPs.includes('`'), 'embedded PowerShell must not contain backticks')
+assert.match(helperPs, /Language\.OCR~~~zh-CN~0\.0\.1\.0/, 'Chinese OCR failures must include the local component installation hint')
+assert.match(helperPs, /相邻/, 'Chinese tooltip text must survive the loot-label filter')
 assert.match(helperPs, /Resolve-BorderAssignment/, '2-opt assignment must be embedded')
 assert.match(helperPs, /adjacent\|areas\|voyage\|인접\|지역\|항해/, 'loot-label keyword gate must be embedded')
 assert.match(helperPs, /VoyageOcrImage\]::Normalize/, 'contrast-stretch rescue must be embedded')
