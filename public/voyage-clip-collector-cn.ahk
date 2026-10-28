@@ -34,7 +34,8 @@ Persistent
 ;  or its hotkeys won't register while the game window is focused.
 ; =====================================================================
 
-CollectorVersion := "2026-10-28-cn-readable"
+CollectorId := "voyage-clip-collector-cn"
+CollectorVersion := "0.2.0"
 
 Collecting := false
 Collected := []
@@ -107,7 +108,7 @@ IsChartText(text) {
 }
 
 ShowCounter() {
-    global Collecting, Collected, BorderCount, StatusMessage
+    global Collecting, Collected, BorderCount, StatusMessage, CollectorId, CollectorVersion
     text := ""
     if Collecting {
         text := "📋 采集中：" Collected.Length " 张海图"
@@ -116,6 +117,8 @@ ShowCounter() {
     }
     if (StatusMessage != "")
         text .= (text = "" ? "" : "`n") StatusMessage
+    if (text != "")
+        text := CollectorId " v" CollectorVersion "`n" text
     ShowCollectorStatus(text)
 }
 
@@ -378,7 +381,8 @@ A_TrayMenu.Insert("1&", "开启或结束海图采集 (F7)", ToggleCollect)
 A_TrayMenu.Insert("2&", "读取边界 (F8)", (*) => RunBorderScan())
 A_TrayMenu.Insert("3&", "切换提示音 (Shift+F7)", ToggleMute)
 A_TrayMenu.Default := "开启或结束海图采集 (F7)"
-A_IconTip := "航程采集器：F7 海图，F8 边界"
+A_TrayMenu.Insert("1&", "版本与运行信息", (*) => ShowStatus(CollectorId " v" CollectorVersion "`n权限模式：" (A_IsAdmin ? "管理员" : "普通权限") "；F7 海图，F8 边界。", 10000))
+A_IconTip := CollectorId " v" CollectorVersion "：F7 海图，F8 边界"
 ShowStatus("航程采集器已就绪：F7 采集海图，F8 读取边界。`n请手动 Ctrl+C 复制海图，或 Ctrl+Alt+C 高级复制；脚本不向游戏发送输入。", 6000)
 
 ; ---------------------------------------------------------------------

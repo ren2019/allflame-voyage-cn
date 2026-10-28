@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "voyage-clip-collector-cn",
+  "version": "0.2.0",
+  "script": "voyage-clip-collector-cn.ahk",
+  "channel": "candidate",
+  "compatibility": {
+    "autoHotkeyMajor": 2,
+    "borderPayload": 1
+  }
+}
