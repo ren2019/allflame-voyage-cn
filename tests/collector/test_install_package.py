@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -32,6 +33,14 @@ class InstallPackageTest(unittest.TestCase):
                 for entry in manifest['files']:
                     content = z.read(entry['path'])
                     self.assertEqual(hashlib.sha256(content).hexdigest(), entry['sha256'])
+                guide = z.read('使用说明.html').decode('utf-8')
+                bundled = re.search(r'<script id="collector-bundled-release" type="application/json">(.*?)</script>', guide, re.S)
+                self.assertIsNotNone(bundled)
+                self.assertEqual(json.loads(bundled.group(1)), json.loads(z.read('payload/collector-release.json')))
+                self.assertIn('href="#bundled-release-details"', guide)
+                self.assertIn('第一次安装', guide)
+                self.assertIn('查看本地诊断', guide)
+                self.assertIn('尚未公开发布', guide)
                 self.assertIn('安装或更新国服海图采集器.cmd', z.namelist())
                 self.assertIn('启动国服海图采集器.cmd', z.namelist())
                 self.assertNotIn('runtime/python/python.exe', z.namelist())
