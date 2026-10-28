@@ -15,11 +15,7 @@ import { tooltipProps } from './Tooltip'
 import { destinationLabel, chartShapeLabel, voyageModText, voyageModShort, SCOPE_LABELS } from '../data/localization'
 
 interface Props {
-  prototypeTop?: ReactNode
-  prototypeRail?: ReactNode
   prototypeCells?: ReactNode[]
-  prototypeActive?: number[]
-  prototypeVariant?: string
   refilledCells?: number[]
   board: Board
   borders: Borders
@@ -71,10 +67,8 @@ function Tile({
   cellIndex,
   onTargetDetails,
   prototypeNote,
-  prototypeActive,
 }: {
   prototypeNote?: ReactNode
-  prototypeActive?: boolean
   placement: Placement | null
   chart: ChartData | null
   score: number
@@ -129,7 +123,7 @@ function Tile({
   const primary = mods.find((m) => m!.scope !== 'self') ?? mods[0]
   return (
     <div
-      className={`tile ${prototypeActive === true ? "proto-focus" : prototypeActive === false ? "proto-muted" : ""} ${region ? 'with-region-targets' : ''} ${selected ? 'selected' : ''} ${highlighted ? 'highlighted' : ''} ${chart.preserved ? 'preserved' : ''} ${primary ? `tscope-${primary.scope}` : ''}`}
+      className={`tile ${region ? 'with-region-targets' : ''} ${selected ? 'selected' : ''} ${highlighted ? 'highlighted' : ''} ${chart.preserved ? 'preserved' : ''} ${primary ? `tscope-${primary.scope}` : ''}`}
       onClick={onClick}
       {...tt}
     >
@@ -221,8 +215,10 @@ function Tile({
           ✕
         </button>
       </div>
-      {region && <RegionTargets cell={region} index={cellIndex} onDetails={onTargetDetails} />}
-      {prototypeNote}
+      {(region || prototypeNote) && <div className="proto-target-overlay">
+        {prototypeNote}
+        {region && <RegionTargets cell={region} index={cellIndex} onDetails={onTargetDetails} />}
+      </div>}
       {startBadge}
       <span className="tile-lvl">区域 {chart.level}</span>
       <div className="tile-score">评分 {score.toFixed(1)}</div>
@@ -276,7 +272,6 @@ export function PrototypeBoardView(props: Props) {
       <Tile
         key={i}
         prototypeNote={props.prototypeCells?.[i]}
-        prototypeActive={props.prototypeActive ? props.prototypeActive.includes(i) : undefined}
         cellIndex={i}
         region={targetMode === 'off' || (targetMode === 'valuable' && targetViews[i].groups.length === 0) ? undefined : targetViews[i]}
         onTargetDetails={() => setDetailCell(i)}
@@ -314,7 +309,7 @@ export function PrototypeBoardView(props: Props) {
   }
 
   return (
-    <div className={`board-wrap proto-board proto-variant-${props.prototypeVariant}`}>
+    <div className="board-wrap proto-board">
       <div className="board-toolbar">
         <span className="board-title">航程摆盘</span>
         <span className="spacer" />
@@ -332,9 +327,7 @@ export function PrototypeBoardView(props: Props) {
         <button onClick={clearBorders}>清空边界</button>
       </BorderAffinity>
       {detailCell !== null && <RegionTargetDetails cell={targets[detailCell]} index={detailCell} onClose={() => setDetailCell(null)} />}
-      {props.prototypeTop}
       <div className="proto-board-body">
-      {props.prototypeRail}
       <div className="board-grid">
         <div className="corner" />
         {border(0)}

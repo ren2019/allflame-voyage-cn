@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "prototype:strategy": "vite --host 127.0.0.1 --port 4191 --strictPort --open '/?prototype=strategy&variant=A'",
+    "prototype:strategy": "vite --host 127.0.0.1 --port 4191 --strictPort --open '/?prototype=strategy&variant=numbered'",
     "check:release-notes": "node scripts/check-release-notes.mjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

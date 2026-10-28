@@ -1,12 +1,10 @@
-// THROWAWAY: three ways to show actions, not three different voyage algorithms.
-import type { ReactNode } from 'react'
+// THROWAWAY: sparse numbered actions inside the regional-target overlay.
+import { rotateEdges } from '../logic/connectivity'
 import type { Board, Borders, ChartData } from '../types'
 import { regionTargets } from '../logic/regionTargets'
 import { destinationLabel } from '../data/localization'
 
 export const POSITIONS = ['左上', '上中', '右上', '左中', '中心', '右中', '左下', '下中', '右下']
-export type Variant = 'A' | 'B' | 'C'
-export const VARIANTS: Record<Variant, string> = { A: '卡片动作签', B: '打法清单', C: '阶段聚焦' }
 export interface Step { title: string; detail: string; cells: number[]; action: string }
 export interface Guide { title: string; note: string; steps: Step[]; names: string[] }
 
@@ -50,37 +48,67 @@ export function makeGuide(strategy: string | null, board: Board, borders: Border
     steps: [step('沿途探索', '放置灯笼，收集零散掉落与硫磺，处理沿途互动。', all, '顺路探索')] }
 }
 
-export function VariantA({ guide }: { guide: Guide }) {
-  return <div className="proto-inline-guide"><strong>{guide.title}</strong><p>{guide.note}</p></div>
+export interface PriorityStop { cell: number; number: number; label: string; detail: string; conditional?: boolean }
+
+/** Demo ordering only: known action dependencies, then nearby connected candidates.
+ * Neither per-tile score nor unknown random encounter locations are used. */
+export function priorityStops(strategy: string, board: Board, borders: Borders, charts: Map<string, ChartData>): PriorityStop[] {
+  const guide = makeGuide(strategy, board, borders, charts)
+  const targets = regionTargets(board, borders, charts, strategy)
+  const occupied = board.flatMap((p, i) => p && charts.has(p.chartUid) ? [i] : [])
+  const edges = (i: number) => {
+    const p = board[i], c = p && charts.get(p.chartUid)
+    return p && c ? rotateEdges(c.edges, p.rotation) : null
+  }
+  const distance = (from: number, to: number) => {
+    const queue = [{ cell: from, distance: 0 }], seen = new Set([from])
+    for (const item of queue) {
+      if (item.cell === to) return item.distance
+      const edge = edges(item.cell)
+      if (!edge) continue
+      const row = Math.floor(item.cell / 3), col = item.cell % 3
+      const neighbors = [row > 0 ? item.cell - 3 : -1, col < 2 ? item.cell + 1 : -1, row < 2 ? item.cell + 3 : -1, col > 0 ? item.cell - 1 : -1]
+      neighbors.forEach((next, direction) => {
+        if (next < 0 || seen.has(next) || !edge[direction] || !edges(next)?.[(direction + 2) % 4]) return
+        seen.add(next); queue.push({ cell: next, distance: item.distance + 1 })
+      })
+    }
+    return Infinity
+  }
+  let current = 6
+  const stops: PriorityStop[] = []
+  const addNearby = (candidates: number[], limit: number, label: string, detail: string) => {
+    const remaining = [...new Set(candidates)]
+    for (let n = 0; n < limit && remaining.length; n++) {
+      remaining.sort((a, b) => distance(current, a) - distance(current, b) || a - b)
+      const cell = remaining.shift()!
+      if (!Number.isFinite(distance(current, cell))) break
+      stops.push({ cell, number: stops.length + 1, label, detail }); current = cell
+    }
+  }
+  if (strategy === 'anchorfield-fishing') {
+    const anchor = guide.steps[1].cells
+    // These are exploration suggestions, never predictions that a blessing exists there.
+    addNearby(occupied.filter(i => !anchor.includes(i)), 3, '找赐福', '建议先探索这里，寻找混沌转神圣赐福；赐福随机出现，不保证此格有赐福。')
+    if (anchor.length && Number.isFinite(distance(current, anchor[0]))) stops.push({ cell: anchor[0], number: stops.length + 1, label: '锚地', detail: '取得目标赐福后返回，开启沉没宝藏；途经可穿过，暂不开宝藏。', conditional: true })
+  } else if (strategy === 'kishara-boss-rush') {
+    addNearby(guide.steps[0].cells, 1, '琪莎拉 Boss', '先击败琪莎拉 Boss，再快速完成其他区域。')
+  } else if (strategy === 'milky-meatfish' || strategy === 'milky-ethereal') {
+    addNearby(guide.steps[0].cells, 2, '收集灯笼', '先取得黄金灯笼增益；同一区域可能还需要稍后处理强化怪物。')
+    addNearby(guide.steps[1].cells, 2, strategy === 'milky-meatfish' ? '强化稀有怪' : '魔法怪', '取得增益后处理本区域的策略目标。')
+  } else if (strategy === 'milky-speedrun') {
+    addNearby(guide.steps[0].cells, 4, '开保险箱', '到实际收到保险箱的区域，先洗练强化，再开启。')
+  } else if (strategy === 'divine-border-rares' || strategy === 'cutedog-divine-boxes') {
+    addNearby(guide.steps[0].cells, 4, '神圣目标', '处理神圣边界实际生效区域的稀有怪；有保险箱时先洗练。')
+  } else if (strategy === 'alc-and-go') {
+    addNearby(targets.flatMap((c, i) => c.targets.some(t => t.weight >= 75) ? [i] : []), 4, '沿途目标', '顺路处理已识别的重要目标。')
+  }
+  return stops
 }
 
-export function VariantB({ guide, selected, onSelect }: { guide: Guide; selected: number | null; onSelect: (n: number | null) => void }) {
-  return <aside className="proto-action-rail" aria-label="打法清单">
-    <strong>这盘怎么打</strong>
-    {guide.steps.map((s, n) => <button key={n} className={selected === n ? 'active' : ''} aria-pressed={selected === n} onClick={() => onSelect(selected === n ? null : n)}>
-      <small>动作组 {n + 1}</small><b>{s.title}</b><span>{s.detail}</span>
-      <em>{s.cells.map(i => POSITIONS[i]).join(' · ') || '当前摆盘没有此目标'}</em>
-    </button>)}
-    <p>{guide.note}</p><small>点击动作组，在图上定位；再次点击取消高亮。</small>
-  </aside>
-}
-
-export function VariantC({ guide, stage, onStage }: { guide: Guide; stage: number; onStage: (n: number) => void }) {
-  return <div className="proto-stage-guide">
-    <div className="proto-stage-tabs" role="group" aria-label="查看打法阶段">{guide.steps.map((s, n) => <button key={n} aria-pressed={stage === n} onClick={() => onStage(n)}>{s.title}</button>)}</div>
-    <strong>{guide.steps[stage].detail}</strong>
-    <p>{guide.note}</p><small>仅切换提示视图；不代表游戏内进度已完成。</small>
+export function NumberedTarget({ stop }: { stop: PriorityStop }) {
+  return <div className={`proto-numbered-target${stop.conditional ? ' conditional' : ''}`} data-order={stop.number} aria-label={`第 ${stop.number} 个建议：${stop.label}${stop.conditional ? '，赐福后开' : ''}`} title={stop.detail}>
+    <span className="proto-order-number">{stop.number}</span>
+    <span className="proto-order-copy"><b>{stop.label}</b>{stop.conditional && <small>赐福后开</small>}</span>
   </div>
-}
-
-export function annotations(guide: Guide, variant: Variant, stage: number): ReactNode[] {
-  return guide.names.map((name, i) => {
-    const steps = guide.steps.filter(s => s.cells.includes(i))
-    const actions = variant === 'C' ? steps.filter(s => s === guide.steps[stage]) : steps
-    const key = name !== '普通区域'
-    return <div className={`proto-cell-note ${key ? 'proto-key-cell' : ''}`}>
-      <strong>{key ? name : POSITIONS[i]}</strong>
-      {variant !== 'B' && actions.map(s => <span key={s.title} className={guide.steps.indexOf(s) === 0 ? 'proto-action-first' : 'proto-action-after'}>{s.action}</span>)}
-    </div>
-  })
 }
