@@ -181,18 +181,18 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
         </details>
 
         <details className="ahk-help">
-          <summary>📋 原版英文海图及边界采集器（Windows 参考）</summary>
+          <summary>📋 国服海图与边界采集器（Windows）</summary>
           <p className="muted">
-            原版可选辅助脚本<strong>不会向游戏发送按键或点击</strong>。所有按键由玩家自己操作；
+            采集器<strong>不会向游戏发送按键或点击</strong>。所有按键由玩家自己操作；
             脚本读取主动复制的剪贴板内容，以及玩家按住 Alt 时的截图。
-            原版 OCR 在 Windows 本地运行。此脚本和边界 OCR 未做国服适配。
+            边界使用 Windows 本地简体中文 OCR，不上传图片。
           </p>
           <a
             className="ahk-dl"
             href={`${import.meta.env.BASE_URL}voyage-clip-collector.ahk`}
             download
           >
-            ⬇ 下载原版 voyage-clip-collector.ahk
+            ⬇ 下载国服 voyage-clip-collector.ahk
           </a>
           <ol className="ahk-steps">
             <li>
@@ -203,15 +203,15 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
               后运行脚本（在系统托盘中）。
             </li>
             <li>
-              按 <kbd>F7</kbd> 开启复制模式，屏幕显示计数器。
+              按 <kbd>F7</kbd> 开启采集，计数浮窗显示海图数量、操作状态和采集错误。
             </li>
             <li>
-              在原版支持的客户端中，逐张悬停海图并自行按 <kbd>Ctrl+C</kbd>，计数器增加。
-              非海图和误操作的重复复制会被忽略。
+              在国服逐张悬停已测绘海图，自行按 <kbd>Ctrl+Alt+C</kbd> 高级复制，计数器增加。
+              非海图和连续相同的海图文本会被忽略。
             </li>
             <li>
-              原版边界采集：<strong>按住 Alt</strong> 显示全部 12 个边界悬停提示，按{' '}
-              <kbd>F8</kbd>，听到提示音后松开；文本在本地读取并加入批次。
+              边界采集：<strong>按住 Alt</strong> 显示全部 12 个边界悬停提示，按{' '}
+              <kbd>F8</kbd>，听到截图完成提示音或看到浮窗提示后松开；文字在本机读取并加入批次。
             </li>
             <li>
               再次按 <kbd>F7</kbd>，切回本页并按 <kbd>Ctrl+V</kbd>，一次导入海图与边界；
@@ -219,12 +219,19 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
             </li>
           </ol>
           <p className="muted small">
+            只更新边界时可单独按住 Alt 后按 F8，完成后直接在网页 Ctrl+V。
+            浮窗的边界数量表示已读取文字，最终词缀匹配数量和失败位置以网页反馈为准；未匹配的位置可点击外圈槽位手动选择。
+          </p>
+          <p className="muted small">
+            缺少简体中文 OCR 时，浮窗会提示安装方法；可在 Windows 设置的简体中文语言选项中安装光学字符识别组件，再按 F8 重试。
+          </p>
+          <p className="muted small">
             <kbd>Shift+F7</kbd> 可关闭提示音，屏幕计数器继续工作。
-            游戏与原版采集器需要相同的权限级别才能响应快捷键。
+            游戏与采集器需要相同的权限级别才能响应快捷键。
           </p>
         </details>
         <p className="muted small">
-          旧版批量操作脚本保持停用。上方保留原版英文采集器参考，国服流程使用手动复制与粘贴。
+          旧版自动批量操作脚本保持停用；上方被动采集器由玩家手动复制和截图，不会自动操作游戏。
         </p>
       </details>
       <p className="muted small">
