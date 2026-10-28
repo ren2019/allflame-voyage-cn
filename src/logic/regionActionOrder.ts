@@ -64,30 +64,49 @@ export function regionActionOrder(
 ): RegionActionOrder {
   const actions: RegionAction[] = []
   const result: RegionActionOrder = { actions, conditions: [], note: null }
-  if (strategyId !== 'anchorfield-fishing') return result
   const occupied = board.flatMap((placement, cell) =>
     cell < 9 && placement && charts.has(placement.chartUid) ? [cell] : [],
   )
-  const anchors = occupied.filter(cell => targets[cell]?.targets.some(target => target.id === 'anchorfield-loot'))
-  result.conditions = anchors.map(cell => ({ cell, label: '锚地', condition: '赐福后开' }))
-  if (anchors.length === 0) return result
-  result.note = '找赐福仅为探索建议，赐福位置随机；可经过锚地暂不开宝藏，确认获得目标赐福后再开。编号是行动顺序，不是评分或放置顺序。'
   let reference = START_CELL
-  const addNearest = (candidates: number[], limit: number, label: string, condition?: string) => {
+  const withTarget = (...ids: string[]) => occupied.filter(cell => targets[cell]?.targets.some(target => ids.includes(target.id)))
+  const addNearest = (
+    candidates: number[], limit: number,
+    label: string | ((cell: number) => Pick<RegionAction, 'label' | 'condition'>), condition?: string,
+  ) => {
     const remaining = new Set(candidates)
     while (remaining.size > 0 && actions.length < 4 && limit-- > 0) {
       const distances = matchedConnectionDistances(board, charts, reference)
       const next = [...remaining].filter(cell => Number.isFinite(distances[cell]))
         .sort((a, b) => distances[a] - distances[b] || a - b)[0]
       if (next === undefined) break
-      actions.push({ cell: next, order: actions.length + 1, label, ...(condition ? { condition } : {}) })
+      const copy = typeof label === 'function' ? label(next) : { label, ...(condition ? { condition } : {}) }
+      actions.push({ cell: next, order: actions.length + 1, ...copy })
       reference = next
       remaining.delete(next)
     }
   }
-  addNearest(occupied.filter(cell => !anchors.includes(cell)), 3, '找赐福')
-  // Exploration is a prerequisite, including when the anchor happens to be the start.
-  if (actions.length > 0) addNearest(anchors, 1, '锚地', '赐福后开')
-  result.conditions = result.conditions.filter(condition => !actions.some(action => action.cell === condition.cell && action.condition))
+  if (strategyId === 'anchorfield-fishing') {
+    const anchors = occupied.filter(cell => targets[cell]?.targets.some(target => target.id === 'anchorfield-loot'))
+    result.conditions = anchors.map(cell => ({ cell, label: '锚地', condition: '赐福后开' }))
+    if (anchors.length === 0) return result
+    result.note = '找赐福仅为探索建议，赐福位置随机；可经过锚地暂不开宝藏，确认获得目标赐福后再开。编号是行动顺序，不是评分或放置顺序。'
+    addNearest(occupied.filter(cell => !anchors.includes(cell)), 3, '找赐福')
+    // Exploration is a prerequisite, including when the anchor happens to be the start.
+    if (actions.length > 0) addNearest(anchors, 1, '锚地', '赐福后开')
+    result.conditions = result.conditions.filter(condition => !actions.some(action => action.cell === condition.cell && action.condition))
+  } else if (strategyId === 'milky-meatfish') {
+    addNearest(withTarget('golden-lantern'), 2, '收黄金灯笼')
+    addNearest(withTarget('giant-starfish', 'rare-monster'), 2, cell => ({
+      label: targets[cell].targets.some(target => target.id === 'giant-starfish') ? '处理巨型海星' : '处理稀有怪',
+    }))
+    result.note = '先收集实际灯笼，再处理重点怪物；同格可有前后两个行动。编号是建议行动顺序，不是评分或放置顺序。'
+  } else if (strategyId === 'milky-ethereal') {
+    addNearest(withTarget('golden-lantern'), 2, '收黄金灯笼')
+    addNearest(withTarget('magic-monster', 'bathyspheres'), 2, cell => ({
+      label: targets[cell].targets.some(target => target.id === 'bathyspheres') ? '处理感染潜航球' : '处理魔法怪',
+    }))
+    result.note = '先收集实际灯笼，再处理魔法怪或感染潜航球；同格可有前后两个行动。编号是建议行动顺序，不是评分或放置顺序。'
+  }
+  if (actions.length === 0 && result.conditions.length === 0) result.note = null
   return result
 }

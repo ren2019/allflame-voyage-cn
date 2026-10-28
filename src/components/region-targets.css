@@ -273,3 +273,11 @@
   .board-grid .tile-lvl { left: 4px; font-size: 10px; }
   .board-grid .tile .tile-start { bottom: 27px; font-size: 9px; }
 }
+
+/* Two phases can return to the same cell. Reserve space for both actions
+   and the original four icon slots without touching the footer or start. */
+.board-grid .tile.with-multiple-region-actions { min-height: 220px; }
+.tile.with-multiple-region-actions .tile-score { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; line-height: 1; }
+@media (max-width: 500px) {
+  .board-grid .tile.with-multiple-region-actions { min-height: 240px; }
+}
