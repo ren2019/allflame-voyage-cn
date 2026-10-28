@@ -14,6 +14,7 @@ import { tooltipProps } from './Tooltip'
 import { destinationLabel, chartShapeLabel, voyageModText, voyageModShort, SCOPE_LABELS } from '../data/localization'
 
 interface Props {
+  refilledCells?: number[]
   board: Board
   borders: Borders
   charts: Map<string, ChartData>
@@ -50,6 +51,7 @@ function Tile({
   score,
   selected,
   highlighted,
+  refilled,
   placing,
   isStart,
   edgeStatus,
@@ -68,6 +70,7 @@ function Tile({
   score: number
   selected: boolean
   highlighted: boolean
+  refilled?: boolean
   placing: boolean
   isStart: boolean
   region?: RegionalCell
@@ -163,6 +166,7 @@ function Tile({
           🔒 保留
         </span>
       )}
+      {refilled && <span className="refilled-badge">已补位 · 请核对实物</span>}
       {chart.pendingDeletion && <span className="pending-badge">待删除 · 不可执行</span>}
       <div className="tile-actions">
         <button
@@ -267,6 +271,7 @@ export function BoardView(props: Props) {
         chart={p ? charts.get(p.chartUid) ?? null : null}
         score={props.perTile[i]}
         selected={props.selectedCell === i}
+        refilled={props.refilledCells?.includes(i)}
         highlighted={!!p && p.chartUid === props.highlightUid}
         placing={!!props.placingChart && !p}
         isStart={i === START_CELL}

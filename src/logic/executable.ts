@@ -1,4 +1,4 @@
-import { bossConversionConflict } from './strategyConstraints'
+import { bossConversionConflict, destinationCountViolations } from './strategyConstraints'
 import { strategyById } from '../data/strategies'
 import { checkConnectivity } from './connectivity'
 import type { AppState } from './storage'
@@ -31,9 +31,8 @@ export function isExecutableResult(result: SolverResult, state: AppState, contex
   if (!result.valid || board.length !== 9 || board.some((p) => !p)) return false
   if (board.some((p) => p && state.pool.find((c) => c.uid === p.chartUid)?.pendingDeletion)) return false
   const strategy = state.strategyId ? strategyById.get(state.strategyId) : null
-  for (const rule of (context.origin !== 'filler' ? strategy?.destinationCounts : []) ?? []) {
-    if (board.filter((p) => p && state.pool.find((c) => c.uid === p.chartUid)?.areaType === rule.areaType).length !== rule.count) return false
-  }
+  if (context.origin !== 'filler' && destinationCountViolations(board,
+    new Map(state.pool.map((c) => [c.uid, c])), strategy?.destinationCounts)) return false
   if (board.some((p) => p && state.pool.find((c) => c.uid === p.chartUid)?.areaType === 'kisharas-rest') &&
       (context.origin === 'filler' || strategy?.id !== 'kishara-boss-rush')) return false
   if (strategy?.id === 'kishara-boss-rush' && bossConversionConflict(board, state.borders,

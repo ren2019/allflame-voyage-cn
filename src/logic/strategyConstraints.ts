@@ -1,5 +1,5 @@
 import { borderModById, voyageModById } from '../data/mods'
-import { borderTouches, type Board, type Borders, type ChartData } from '../types'
+import { borderTouches, type Board, type Borders, type ChartData, type ChartAreaType } from '../types'
 import { boardEffectScope } from './effectScope'
 import type { ScoreOptions } from './scoring'
 
@@ -24,4 +24,8 @@ export function bossPreservation(board: Board, borders: Borders, charts: Map<str
   if (boss < 0) return []
   return borders.flatMap((id, segment) => id && borderTouches(segment) === boss
     ? (borderModById.get(id)?.effects ?? []).filter((e) => e.stat === 'preserve' && e.percent > 0).map((e) => `边界${segment + 1}：${e.percent}%`) : [])
+}
+
+export function destinationCountViolations(board: Board, charts: Map<string, ChartData>, rules: { areaType: ChartAreaType; count: number }[] = []): number {
+  return rules.reduce((sum, rule) => sum + Math.abs(board.filter((p) => p && charts.get(p.chartUid)?.areaType === rule.areaType).length - rule.count), 0)
 }

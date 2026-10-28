@@ -105,3 +105,59 @@ test('#51 新增及重复高亮独立于选中，隐藏目标不改筛选', asyn
   await expect(page.locator('.chart-sq.selected')).toHaveCount(0)
   expect(await exportState(page)).toEqual(original)
 })
+
+test('#50 补位后逐格标识，修改新填格会使所有旧候选失效', async ({ page }) => {
+  await openEmptyApp(page)
+  const s = inventory(); s.board[4] = null
+  await loadState(page, s)
+  await page.locator('.refill-board').click()
+  await expect(page.locator('.refilled-badge')).toHaveCount(1)
+  await expect(page.locator('.board-grid .tile').nth(4).locator('.refilled-badge')).toContainText('请核对实物')
+  await page.locator('.board-grid .tile').nth(4).hover()
+  await page.locator('.board-grid .tile').nth(4).getByTitle('旋转', { exact: true }).click()
+  await expect(page.locator('.solve-result:not(.invalid)')).toHaveCount(0)
+  const changed = await exportState(page)
+  await page.locator('.solve-result').first().click()
+  expect((await exportState(page)).board).toEqual(changed.board)
+})
+
+test('#45 #50 唯一锚地待删除时补位失败，保持空位与固定格', async ({ page }) => {
+  await openEmptyApp(page)
+  const s = inventory(); s.pool[0].pendingDeletion = true; s.board[0] = null
+  await loadState(page, s)
+  await page.locator('.refill-board').click()
+  await expect(page.locator('.solve-bar')).toContainText('本次未找到合法补位')
+  expect(await exportState(page)).toEqual(s)
+  await expect(page.locator('.solve-result')).toHaveCount(0)
+})
+
+test('#46 首选与保图重算都保留禁用词缀的评分设置', async ({ page }) => {
+  await openEmptyApp(page)
+  const s = inventory(); s.strategyId = 'kishara-boss-rush'; s.pool[1].modIds = ['voy-sulph-3']; s.disabledMods = ['voy-sulph-3']; s.borders[0] = 'b-keep-2'
+  await loadState(page, s)
+  await page.locator('.solve-big').click()
+  await expect(page.locator('.solve-result:not(.invalid)').first()).toBeVisible({ timeout: 20000 })
+  for (const score of await page.locator('.solve-result .sr-pts').allTextContents()) expect(score).toBe('0.0')
+})
+
+test('#48 延迟复制拒绝重复推进，取消或恢复后旧请求不能产生完成提醒', async ({ page }) => {
+  await openEmptyApp(page); await loadState(page, inventory())
+  await page.evaluate(() => Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+    writeText: () => new Promise<void>((resolve) => { (window as unknown as { completeWrite: () => void }).completeWrite = resolve }),
+  } }))
+  await page.locator('.copy-into-game').click()
+  await page.locator('.copyseq-go').click(); await page.keyboard.press('Control+c')
+  await expect(page.locator('.copyseq .pc-head')).toContainText('第 1/9 步')
+  await page.getByRole('button', { name: '取消', exact: true }).click()
+  await page.evaluate(() => (window as unknown as { completeWrite: () => void }).completeWrite())
+  await expect(page.locator('.finish-voyage')).not.toHaveClass(/copy-complete-primary/)
+})
+
+test('#50 临时固定不能绕过其他策略材料预留', async ({ page }) => {
+  await openEmptyApp(page)
+  const s = inventory(); s.strategyId = 'alc-and-go'; s.board[4] = null; s.pool[1].modIds = ['voy-rare']
+  await loadState(page, s)
+  await page.locator('.refill-board').click()
+  await expect(page.locator('.solve-bar')).toContainText('锁定海图受到策略保护')
+  expect(await exportState(page)).toEqual(s)
+})

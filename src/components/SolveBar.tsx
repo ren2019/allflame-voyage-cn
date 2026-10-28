@@ -2,7 +2,7 @@ import { bossPreservation } from '../logic/strategyConstraints'
 import { borderModById } from '../data/mods'
 import { borderTouches } from '../types'
 import { useRef, useState } from 'react'
-import { solve, type SolverResult } from '../logic/solver'
+import { solve, type SolverResult, type SolverOptions } from '../logic/solver'
 import type { AppState } from '../logic/storage'
 import { applyCenterChoice, type StrategyDef } from '../data/strategies'
 import { selectStrategySolvePool } from '../logic/solverPoolSelection'
@@ -55,7 +55,7 @@ export function SolveBar({ state, activeStrategy, results, resultContext, applie
           state.pool,
           effectiveStrategy,
           state.strategyReservations,
-          lockedUids,
+          refill ? new Set<string>() : lockedUids,
           state.pieceKeeps,
         )
         if (locked.some((p) => p && !solvePool.some((c) => c.uid === p.chartUid))) {
@@ -68,7 +68,7 @@ export function SolveBar({ state, activeStrategy, results, resultContext, applie
           effectiveStrategy?.layouts?.find(
             (v) => v.id === state.layoutChoice[effectiveStrategy.id],
           ) ?? effectiveStrategy?.layouts?.[0]
-        const res = solve(solvePool, state.borders, weights, {
+        const options: SolverOptions = {
           mode: state.mode,
           allowRotation: state.allowRotation,
           adjacencyMode: state.adjacencyMode,
@@ -81,18 +81,16 @@ export function SolveBar({ state, activeStrategy, results, resultContext, applie
           strategyLayout: layoutVariant?.layout ?? effectiveStrategy?.layout,
           strategyLayoutPenalty: effectiveStrategy?.layoutPenalty,
           locked,
-        })
+        }
+        const res = solve(solvePool, state.borders, weights, options)
         if (effectiveStrategy?.id === 'kishara-boss-rush') {
           // Try the preferred start explicitly, so a large reward cannot
           // displace an available legal start placement.
-          const bossOpts = { mode: state.mode, allowRotation: state.allowRotation,
-            adjacencyMode: state.adjacencyMode, adjacentAffectsSelf: state.adjacentAffectsSelf,
-            topK: 5, locked, bossSafety: true, destinationCounts: effectiveStrategy.destinationCounts }
-          const start = solve(solvePool, state.borders, weights, { ...bossOpts, bossCells: [6] }).filter((r) => r.valid && r.board.every(Boolean))
+          const start = solve(solvePool, state.borders, weights, { ...options, bossCells: [6] }).filter((r) => r.valid && r.board.every(Boolean))
           if (start.length) res.splice(0, res.length, ...start)
           const keepCells = [...new Set(state.borders.flatMap((id, i) => id && borderModById.get(id)?.effects.some((e) => e.stat === 'preserve' && e.percent > 0) ? [borderTouches(i)] : []))]
           if (keepCells.length && !res.some((r) => r.valid && bossPreservation(r.board, state.borders, new Map(solvePool.map((c) => [c.uid, c]))).length)) {
-            const alternatives = solve(solvePool, state.borders, weights, { ...bossOpts, bossCells: keepCells }).filter((r) => r.valid && r.board.every(Boolean))
+            const alternatives = solve(solvePool, state.borders, weights, { ...options, bossCells: keepCells }).filter((r) => r.valid && r.board.every(Boolean))
             if (alternatives[0]) res.push(alternatives[0])
           }
         }

@@ -187,7 +187,13 @@ export default function App() {
   const [selectedChart, setSelectedChart] = useState<string | null>(null)
   const [selectedCell, setSelectedCell] = useState<number | null>(null)
   const [results, setResults] = useState<SolverResult[]>([])
+  const [refilledCells, setRefilledCells] = useState<number[]>([])
+  const resultBoard = useRef(state.board)
   const [resultContext, setResultContext] = useState<SolveResultContext | null>(null)
+  useEffect(() => {
+    if (resultBoard.current !== state.board) { setResultContext(null); setRefilledCells([]) }
+    resultBoard.current = state.board
+  }, [state.board])
   // which solver result is currently loaded on the board (highlights its card)
   const [appliedIdx, setAppliedIdx] = useState<number | null>(null)
   const [shareMsg, setShareMsg] = useState('')
@@ -325,12 +331,14 @@ export default function App() {
   const addCharts = (charts: ChartData[]) =>
     setState((s) => ({ ...s, pool: [...s.pool, ...charts] }))
 
-  const removeChart = (uid: string) =>
+  const removeChart = (uid: string) => {
+    setVoyageMsg('已删除库存海图，请重新求解并核对游戏内已放置海图；不足九张时需补充库存。')
     setState((s) => ({
       ...s,
       pool: s.pool.filter((c) => c.uid !== uid),
       board: s.board.map((p) => (p?.chartUid === uid ? null : p)),
     }))
+  }
 
   const clearCharts = () => {
     if (!window.confirm('移除全部库存海图并清空摆盘？边界和权重会保留。'))
@@ -702,6 +710,7 @@ export default function App() {
 
         <section className="col board-col">
           <BoardView
+            refilledCells={refilledCells}
             board={state.board}
             borders={state.borders}
             charts={chartMap}
@@ -762,12 +771,15 @@ export default function App() {
                 resultContext={resultContext}
                 appliedIdx={appliedIdx}
                 onResults={(r, context) => {
+                  setRefilledCells(context?.origin === 'refill' && r.length ? context.locked.flatMap((p, i) => p ? [] : [i]) : [])
                   setResults(r)
                   setResultContext(context)
                   setAppliedIdx(null)
                 }}
                 onApply={(r, idx) => {
-                  patch({ board: r.board.map((p) => (p ? { ...p } : null)) })
+                  const board = r.board.map((p) => (p ? { ...p } : null))
+                  resultBoard.current = board
+                  patch({ board })
                   setAppliedIdx(idx)
                   setSelectedCell(null)
                   setSelectedChart(null)

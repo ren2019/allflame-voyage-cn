@@ -1,4 +1,4 @@
-import { bossConversionConflict } from './strategyConstraints'
+import { bossConversionConflict, destinationCountViolations } from './strategyConstraints'
 import type { Board, Borders, ChartData, ConnectivityMode, Edges, Placement, Weights } from '../types'
 import { borderTouches } from '../types'
 import type { PositionRule, StrategyDef } from '../data/strategies'
@@ -140,8 +140,7 @@ function evaluate(
   const layoutPen = opts.strategyLayout
     ? layoutMisses(board, charts, opts.strategyLayout) * (opts.strategyLayoutPenalty ?? LAYOUT_PENALTY)
     : 0
-  let destinationMisses = (opts.destinationCounts ?? []).reduce((sum, rule) =>
-    sum + Math.abs(board.filter((p) => p && charts.get(p.chartUid)?.areaType === rule.areaType).length - rule.count), 0)
+  let destinationMisses = destinationCountViolations(board, charts, opts.destinationCounts)
   if (opts.bossSafety && bossConversionConflict(board, borders, charts, opts)) destinationMisses++
   if (opts.bossCells && !board.some((p, i) => p && charts.get(p.chartUid)?.areaType === 'kisharas-rest' && opts.bossCells!.includes(i))) destinationMisses++
   const objective =
