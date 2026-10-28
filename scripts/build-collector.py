@@ -45,6 +45,7 @@ def build(output, full=False, components=None, download=False):
                  for p in sorted(stage.rglob('*')) if p.is_file()]
         manifest = {'schemaVersion': 1, 'id': release['id'], 'version': release['version'],
                     'channel': 'candidate', 'sourceCommit': source, 'sourceDirty': dirty,
+                    'changes': release.get('changes', []),
                     'platform': 'win-x64', 'autoHotkey': runtime['autoHotkey'],
                     'visualCpp': runtime['visualCpp'], 'files': files,
                     'maximumDependencyBytes': sum(x['bytes'] for x in dependencies),

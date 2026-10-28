@@ -5,7 +5,8 @@ param(
     [string]$InstallRoot = '',
     [switch]$ValidateOnly,
     [switch]$PrepareOnly,
-    [switch]$Offline
+    [switch]$Offline,
+    [switch]$AcceptVersionChange
 )
 $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'collector-install.psm1') -Force -DisableNameChecking
@@ -19,6 +20,9 @@ try {
     Write-Host '[检查包] 正在核对候选清单、脚本版本与文件摘要…'
     $package = Get-CollectorPackage $PackageRoot
     Write-Host "包校验通过｜版本 $($package.version)｜目录 $InstallRoot"
+    if ($package.PSObject.Properties['changes']) {
+        foreach ($change in $package.changes) { Write-Host "[变化说明] $change" }
+    }
     if ($ValidateOnly) {
         Write-Host '仅完成候选包校验，尚未安装或确认 Windows 原生组件就绪。'
         exit 0
@@ -46,6 +50,42 @@ try {
     try {
         $installationLock = [IO.File]::Open((Join-Path $InstallRoot 'installation.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
     } catch { throw '另一个安装或修复窗口可能仍在运行，或目录权限不足。请保留现有窗口并稍后重试。' }
+    if (Test-Path -LiteralPath (Join-Path $InstallRoot 'transaction.json')) {
+        if ($PrepareOnly) { throw '有尚未恢复的维护事务，请先在维护入口恢复；只准备组件不会改动原版本登记。' }
+        $recoveryLock = [IO.File]::Open((Join-Path $InstallRoot 'collector.running.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+        try { Restore-CollectorTransaction $InstallRoot } finally { $recoveryLock.Dispose() }
+    }
+    if (Test-Path -LiteralPath (Join-Path $InstallRoot 'current.json')) {
+        $current = Get-CollectorRegistration $InstallRoot
+        Write-Host "[版本] 当前 $($current.version) → 目标 $($package.version)"
+        if ([version]$package.version -lt [version]$current.version) { throw '所选候选版本较旧。未切换；请选择当前版本的修复包或更高版本。' }
+        if ($current.version -eq $package.version) {
+            Write-Host '同版本进入检查/修复，不重复增加快捷方式。'
+            if (-not $PrepareOnly) {
+                try {
+                    $installed = Get-CollectorInstallation $InstallRoot
+                    foreach ($name in Get-CollectorStableNames) {
+                        $expected = @($package.files | Where-Object { $_.path -eq $name })
+                        if (-not $expected.Count) { throw "候选缺少入口：$name" }
+                        Assert-CollectorFile (Join-Path $InstallRoot $name) $expected[0]
+                    }
+                    if (-not $current.PSObject.Properties['shortcuts']) { throw '旧登记的快捷方式需要补齐。' }
+                    foreach ($shortcut in $current.shortcuts) {
+                        $target = Get-CollectorTransactionTarget $InstallRoot $current ([pscustomobject]@{ scope = 'desktop'; path = $shortcut.name })
+                        Assert-CollectorFile $target $shortcut
+                    }
+                    $null = Test-CollectorModels $installed.ReleaseRoot
+                    Write-Host "同版本检查通过｜$($current.version)。现有组件与模型可运行，未重建快捷方式。"
+                    exit 0
+                } catch { Write-Host '发现缺失/损坏或不能加载的组件，准备独立修复候选。' }
+            }
+        } elseif (-not $PrepareOnly -and -not $AcceptVersionChange) {
+            if ((Read-Host '输入“更新”确认目标版本；直接 Enter 取消') -ne '更新') {
+                Write-Host '已取消更新，旧版本未改变。'
+                exit 0
+            }
+        }
+    }
     $stage = '下载、校验与准备组件'
     $prepared = New-CollectorPreparedRelease $PackageRoot $InstallRoot $package ([bool]$Offline)
     if ($PrepareOnly) {
@@ -70,6 +110,7 @@ try {
     Write-Host "安装完成｜版本 $($package.version)。请双击桌面的‘国服海图采集器’开始使用。" -ForegroundColor Green
     Write-Host '安装不等于游戏验收通过；退出入口在任务栏右下角采集器图标 → 退出。'
     Write-Host '使用说明：桌面的“国服海图采集器使用说明”。首次启动将请求正常 Windows 管理员授权；选择否时未启动，可重试。'
+    exit 0
 } catch {
     if ($prepared -and (Test-Path -LiteralPath $prepared)) {
         Remove-Item -LiteralPath $prepared -Recurse -Force -ErrorAction SilentlyContinue
