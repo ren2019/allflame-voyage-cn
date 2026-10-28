@@ -12,6 +12,10 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    date: '2026-10-28', tag: 'new', title: '锚地打法顺序与独立显示开关',
+    detail: '摆盘中央默认显示少量打法编号，锚地先给最多三个找赐福探索建议，再提示赐福后开宝藏；编号沿实际连接排序，锚地位于起点也保留条件。打法顺序和区域目标图标可分别开关，不改变评分、库存或规划备份。',
+  },
+  {
     date: '2026-10-28', tag: 'reworked', title: '统一国服采集器名称与版本',
     detail: '导入说明改为下载 voyage-clip-collector-cn.ahk，并显示版本；运行浮窗、托盘及“版本与运行信息”可核对当前工具版本和权限，便于反馈与后续更新。',
   },
