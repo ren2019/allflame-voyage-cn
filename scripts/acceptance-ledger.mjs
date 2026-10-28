@@ -20,10 +20,6 @@ export function validateAcceptanceCoverage(root, reportDir) {
   if (stories.length !== 7 || new Set(stories).size !== 7 || stories.some((id) => !contract.groups.some((group) => group.stories.includes(id)))) issues.push('Seven-story coverage mismatch')
   const files = new Set([...contract.requiredFixtures, ...contract.groups.flatMap((group) => [...group.fixtures, ...group.tests.map((ref) => ref.file)])])
   for (const file of files) if (!existsSync(resolve(root, file))) issues.push(`Missing required fixture/test: ${file}`)
-  for (const file of contract.coreFiles) {
-    const path = resolve(root, file.path)
-    if (!existsSync(path) || createHash('sha256').update(readFileSync(path)).digest('hex') !== file.sha256) issues.push(`Core algorithm changed: ${file.path}`)
-  }
   const unit = read(resolve(reportDir, 'unit.json'), 'execution report')
   const browser = read(resolve(reportDir, 'browser.json'), 'execution report')
   const stages = read(resolve(reportDir, 'stages.json'), 'execution report')
@@ -41,6 +37,7 @@ export function validateAcceptanceCoverage(root, reportDir) {
     }
   }
   browserCases(browser?.suites)
+  issues.push(...validateCoreFiles(root, contract, observations))
   if (!observations.length || observations.some((item) => !item.passed)) issues.push('Absent, failed or skipped observed unit/browser test')
   if (!unit?.success || unit.numPendingTests || unit.numFailedTests) issues.push('Unit execution incomplete')
   if (!browser?.stats || browser.stats.unexpected || browser.stats.skipped || browser.stats.flaky || browser.errors?.length) issues.push('Browser execution incomplete')
@@ -72,4 +69,21 @@ export function validateAcceptanceCoverage(root, reportDir) {
   })
   if (groups.some((group) => group.automated !== 'passed')) issues.push('Scenario group evidence incomplete')
   return { ok: issues.length === 0, status: issues.length ? 'automated-incomplete; field-pending' : 'automated-passed; field-pending', issues, groups, stories, observedTests: observations.length, fieldCheckpoint: contract.fieldCheckpoint, windows: { startedUtc: windows?.startedUtc, deployedIntegration: windows?.deployedIntegration, gameSearch: windows?.gameSearch } }
+}
+
+/** A reviewed revision supplements the immutable historical fingerprint only
+ * when both its exact bytes and independent passing regressions are present. */
+export function validateCoreFiles(root, contract, observations) {
+  return contract.coreFiles.flatMap((file) => {
+    const path = resolve(root, file.path)
+    const digest = existsSync(path) ? createHash('sha256').update(readFileSync(path)).digest('hex') : null
+    if (digest === file.sha256) return []
+    const revision = (contract.coreFileRevisions ?? []).find((entry) =>
+      entry.path === file.path && entry.previousSha256 === file.sha256 && entry.sha256 === digest)
+    const supported = revision?.version && revision.authorization && revision.tests?.length > 0 && revision.tests.every((ref) => {
+      const cases = observations.filter((test) => test.suite === ref.suite && test.file?.endsWith(ref.file) && test.title?.includes(ref.nameIncludes))
+      return cases.length > 0 && cases.every((test) => test.passed)
+    })
+    return supported ? [] : [`Core algorithm changed: ${file.path}`]
+  })
 }

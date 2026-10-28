@@ -33,3 +33,9 @@ Boss 策略没有经过确认的边界适配权重表，现有边界分析沿用
 ## 游戏现场人工核对
 
 游戏搜索实际命中、实物放置/朝向、国服首次Boss任务、装备转金币实际效果、保图消耗与Boss掉落仍由玩家按 `docs/acceptance/field-checklist.md` 核对；网页与原生剪贴板证据不替代游戏结果。
+
+## 求解器版本化基线
+
+用户于2026-10-28明确授权新增 `cn-material-constraints-v1`。`coverage.json` 的原 `coreFiles` 中 solver、scoring、connectivity 指纹全部保留不变；新增 solver 修订需匹配旧指纹、当前精确字节及独立逻辑/浏览器行为回归，缺少或失败的回归不能放行。未给 scoring 添加豁免。
+
+历史 Windows TLS 文件的缺失由此前归档提交 `ffd3fef` 引入；本次不恢复含本机证书信息的旧记录，也不冒充当前生产验收。完整 verify 仍须如实报告该历史引用与既有 scoring 指纹失败。
