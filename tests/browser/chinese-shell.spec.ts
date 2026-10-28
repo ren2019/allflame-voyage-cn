@@ -11,17 +11,20 @@ test('已读旧记录的用户仍看到新发布提醒，并能查看本次国�
   await expect(button).toHaveClass(/unseen/)
   await button.click()
   const rows = page.locator('.updates-list .update-title')
-  await expect(rows.nth(0)).toHaveText('国服海图与边界采集器')
-  await expect(rows.nth(1)).toHaveText('琪莎拉整程填充与漂流瓶译名')
-  await expect(rows.nth(2)).toHaveText('琪莎拉优先保图并保护锚地材料')
-  await expect(rows.nth(3)).toHaveText('仅突出特殊目的地')
-  await expect(rows.nth(4)).toHaveText('精简海图库存卡片操作')
-  await expect(rows.nth(5)).toHaveText('航程保护、库存纠错与补位')
-  await expect(rows.nth(6)).toHaveText('提高锚地策略的蛤蜊目标提醒优先级')
-  await expect(rows.nth(7)).toHaveText('兼容同类海图词缀措辞')
-  await expect(rows.nth(8)).toHaveText('修复罪魂牢笼海图导入')
-  await expect(rows.nth(9)).toHaveText('紧凑边界选择与通货图标')
-  await expect(rows.nth(10)).toHaveText('逐步复制操作保持可见')
+  await expect(rows).toContainText([
+    '统一国服采集器名称与版本',
+    '国服海图与边界采集器',
+    '琪莎拉整程填充与漂流瓶译名',
+    '琪莎拉优先保图并保护锚地材料',
+    '仅突出特殊目的地',
+    '精简海图库存卡片操作',
+    '航程保护、库存纠错与补位',
+    '提高锚地策略的蛤蜊目标提醒优先级',
+    '兼容同类海图词缀措辞',
+    '修复罪魂牢笼海图导入',
+    '紧凑边界选择与通货图标',
+    '逐步复制操作保持可见',
+  ])
   await expect(page.locator('.updates-list')).toContainText('包含一个／两个／二个')
   await expect(page.locator('.updates-list')).toContainText('真实出现权重')
   await page.keyboard.press('Escape')
@@ -125,11 +128,18 @@ test('国服采集说明保留 F7 浮窗、被动采集和本地识别，并提�
   await expect(collector).toContainText('单独')
   await expect(collector).toContainText('手动选择')
   await expect(collector).not.toContainText('未做国服')
-  const download = collector.getByRole('link', { name: '⬇ 下载国服 voyage-clip-collector.ahk', exact: true })
+  const download = collector.getByRole('link', { name: '⬇ 下载国服 voyage-clip-collector-cn.ahk', exact: true })
   await expect(download).toHaveAttribute('download', '')
   const response = await page.request.get((await download.getAttribute('href'))!)
   expect(response.ok()).toBe(true)
-  expect(await response.text()).toContain('#Requires AutoHotkey v2.0')
+  const script = await response.text()
+  expect(script).toContain('#Requires AutoHotkey v2.0')
+  const releaseResponse = await page.request.get(new URL('collector-release.json', response.url()).href)
+  expect(releaseResponse.ok()).toBe(true)
+  const release = await releaseResponse.json()
+  await expect(collector).toContainText(`脚本版本 v${release.version}`)
+  expect(script).toContain(`CollectorVersion := "${release.version}"`)
+  expect(new URL(response.url()).pathname).toMatch(/\/voyage-clip-collector-cn\.ahk$/)
 })
 
 test('回访公告区分旧自动操作脚本与国服被动采集器', async ({ page }) => {

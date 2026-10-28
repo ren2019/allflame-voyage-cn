@@ -8,6 +8,7 @@ import type { AppState } from '../logic/storage'
 import { defaultState } from '../logic/storage'
 import type { ChartData } from '../types'
 import { CompactCopyText } from './CompactCopyText'
+import collectorRelease from '../../public/collector-release.json'
 
 interface Props {
   onFeedback?: (hits: ImportHit[]) => void
@@ -189,11 +190,14 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
           </p>
           <a
             className="ahk-dl"
-            href={`${import.meta.env.BASE_URL}voyage-clip-collector.ahk`}
+            href={`${import.meta.env.BASE_URL}${collectorRelease.script}`}
             download
           >
-            ⬇ 下载国服 voyage-clip-collector.ahk
+            ⬇ 下载国服 {collectorRelease.script}
           </a>
+          <p className="muted">
+            脚本版本 v{collectorRelease.version}。运行后可在浮窗、托盘悬停或「版本与运行信息」中核对版本与权限。
+          </p>
           <ol className="ahk-steps">
             <li>
               安装{' '}

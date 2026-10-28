@@ -54,6 +54,8 @@ npm run dev
 
 ## 发布前检查
 
+国服采集器统一使用 `voyage-clip-collector-cn.ahk`。脚本每次迭代递增 `CollectorVersion` 的语义版本号，同步 `public/collector-release.json`；网页从清单读取文件名和版本，浮窗、托盘和运行信息从脚本的同一版本常量读取。制作安装候选时沿用该版本，并由 OCR/安装任务补齐固定组件和模型的兼容清单；仅有命名清单不代表安装包或 OCR 已验收。`npm run test:border-ocr` 核对下载文件与版本清单一致，旧历史证据中的文件名保留原貌。
+
 每个实现 PR 都在 `src/data/updates.ts` 的国服 `UPDATES` 顶部新增记录，说明用户能看到的变化及入口；维护或发布流程变化可用一条简短说明。日期使用实际发布日期，同一天可有多次发布。保留旧条目的日期、标题与顺序；修正历史说明时也要新增本次记录。原版历史单独维护。
 
 提交前运行 `npm run check:release-notes -- --base origin/main`。PR 的 `release-notes` 检查使用 PR 基线；GitHub Pages 构建前再与上次成功部署的提交比较。缺少新增国服记录、无效日期或空说明会阻止发布；查不到发布基线也会停止。即使绕过 PR 检查合并，生产部署仍会被拦住。同一已发布提交的重跑复用已有记录。

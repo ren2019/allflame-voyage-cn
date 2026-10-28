@@ -210,8 +210,16 @@ assert.equal(noisyRarePerConnection.matches[0]?.id, 'b-rareconn-1')
 // screenshot taken while the PLAYER holds Alt, but game-input primitives
 // must never appear in it.
 const collector = fs
-  .readFileSync(require.resolve('../public/voyage-clip-collector.ahk'), 'utf8')
+  .readFileSync(require.resolve('../public/voyage-clip-collector-cn.ahk'), 'utf8')
   .replace(/\r\n?/g, '\n')
+const release = require('../public/collector-release.json')
+assert.equal(release.id, 'voyage-clip-collector-cn')
+assert.equal(release.script, 'voyage-clip-collector-cn.ahk')
+assert.match(release.version, /^\d+\.\d+\.\d+$/)
+assert.equal(collector.match(/^CollectorVersion := "([^"]+)"/m)?.[1], release.version,
+  'downloaded script must agree with the candidate manifest version')
+assert.equal(fs.existsSync(require('node:path').join(__dirname, '../public/voyage-clip-collector.ahk')), false,
+  'the old unversioned download must not remain as a second maintained collector')
 assert.match(collector, /OnClipboardChange/)
 assert.match(collector, /아이템 종류/, 'must recognise Korean chart headers')
 assert.match(collector, /物品类别/, 'downloaded collector must recognise mainland chart headers')
