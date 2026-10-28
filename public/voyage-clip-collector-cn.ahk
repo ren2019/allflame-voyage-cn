@@ -35,7 +35,7 @@ Persistent
 ; =====================================================================
 
 CollectorId := "voyage-clip-collector-cn"
-CollectorVersion := "0.2.2"
+CollectorVersion := "0.2.4"
 CollectorReady := false
 CollectorInstallRoot := ""
 CollectorInstanceHandle := 0
@@ -399,11 +399,21 @@ A_TrayMenu.Add("开启或结束海图采集 (F7)", ToggleCollect)
 A_TrayMenu.Add("读取边界 (F8)", (*) => RunBorderScan())
 A_TrayMenu.Add("切换提示音 (Shift+F7)", ToggleMute)
 A_TrayMenu.Add("版本与运行信息", (*) => ShowStatus(CollectorId " v" CollectorVersion "`n权限模式：" (A_IsAdmin ? "管理员" : "普通权限") "；F7 海图，F8 边界。", 10000))
+A_TrayMenu.Add("更新、修复与卸载", OpenCollectorMaintenance)
 A_TrayMenu.Add("退出", (*) => ExitApp())
 A_TrayMenu.Default := "开启或结束海图采集 (F7)"
 A_IconTip := CollectorId " v" CollectorVersion "：F7 海图，F8 边界"
 InitializeCollector()
 SetTimer CheckGamePermission, 5000
+
+OpenCollectorMaintenance(*) {
+    global CollectorInstallRoot
+    if (CollectorInstallRoot = "" || !FileExist(CollectorInstallRoot "\维护国服海图采集器.cmd")) {
+        ShowStatus("维护入口缺失。请重新解压完整候选包，双击“安装或更新国服海图采集器.cmd”；不要猜测命令。")
+        return
+    }
+    Run '"' CollectorInstallRoot '\维护国服海图采集器.cmd"'
+}
 
 InitializeCollector() {
     global CollectorReady, CollectorVersion, CollectorInstallRoot, CollectorInstanceHandle

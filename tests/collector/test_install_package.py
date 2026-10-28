@@ -130,6 +130,7 @@ class InstallPackageTest(unittest.TestCase):
             identity = json.loads((path / 'collector-release.json').read_text())
             registration = {'id': identity['id'], 'version': identity['version'],
                 'release': str(path.relative_to(installation)),
+                'package': 'packages/controlled-fixture',
                 'inventory': {'bytes': inventory.stat().st_size,
                               'sha256': hashlib.sha256(inventory.read_bytes()).hexdigest()}}
             for name in ['collector-install.psm1', 'launch-voyage-clip-collector-cn.ps1']:
