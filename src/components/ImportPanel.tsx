@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { ALL_GOOD_MODS_REGEX, RARE_IMPLICITS } from '../data/strategies'
-import { parseBorderOcrPayload } from '../logic/borderOcr'
+import { parseBorderOcrPayload, type BorderOcrMiss } from '../logic/borderOcr'
 import { isChartClipboardText, parseChartText } from '../logic/parser'
 import { dedupeNewCharts, type ImportHit } from '../logic/importDedupe'
 import type { AppState } from '../logic/storage'
@@ -20,6 +20,7 @@ interface Props {
 export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
+  const [borderMisses, setBorderMisses] = useState<BorderOcrMiss[]>([])
   const successfulImports = useRef(0)
   // celebratory alert when an import brings in rare-implicit (Divine fuel) charts
   const [rareAlert, setRareAlert] = useState('')
@@ -27,6 +28,7 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
   const doParse = useCallback((raw?: string) => {
     const source = raw ?? text
     const borderOcr = parseBorderOcrPayload(source)
+    setBorderMisses(borderOcr.misses)
     const { charts, rejected } = parseChartText(borderOcr.chartText)
     const notCharted = rejected.filter((r) => r.reason.startsWith('not charted'))
     if (charts.length === 0 && rejected.length === 0 && borderOcr.blockCount === 0) {
@@ -158,6 +160,13 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
         </button>
       </div>
       <div className="import-result muted pad" role="status" aria-live="polite" aria-atomic="true">{msg}</div>
+      {borderMisses.length > 0 && <details className="import-border-misses">
+        <summary>查看未匹配边界文字（{borderMisses.length}处）</summary>
+        <p>对照游戏核对完整原文；可重新按住 Alt 后 F8 读取，或在摆盘边界手动补选。OCR 错字不等于权限问题。</p>
+        <ol>{borderMisses.map((miss, i) => <li key={`${miss.index}-${i}`}>
+          位置 {miss.index + 1}<pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{miss.raw}</pre>
+        </li>)}</ol>
+      </details>}
       {rareAlert && (
         <div className="import-rare-alert">
           <span>🎰 {rareAlert}</span>
