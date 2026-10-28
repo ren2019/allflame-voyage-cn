@@ -124,7 +124,7 @@ function Tile({
   const primary = mods.find((m) => m!.scope !== 'self') ?? mods[0]
   return (
     <div
-      className={`tile ${region || actions.length || conditions.length ? 'with-region-targets' : ''} ${actions.length || conditions.length ? 'with-region-actions' : ''} ${selected ? 'selected' : ''} ${highlighted ? 'highlighted' : ''} ${chart.preserved ? 'preserved' : ''} ${primary ? `tscope-${primary.scope}` : ''}`}
+      className={`tile ${region || actions.length || conditions.length ? 'with-region-targets' : ''} ${actions.length || conditions.length ? 'with-region-actions' : ''} ${actions.length > 1 ? 'with-multiple-region-actions' : ''} ${selected ? 'selected' : ''} ${highlighted ? 'highlighted' : ''} ${chart.preserved ? 'preserved' : ''} ${primary ? `tscope-${primary.scope}` : ''}`}
       onClick={onClick}
       {...tt}
     >
