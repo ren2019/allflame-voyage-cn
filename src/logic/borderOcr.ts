@@ -138,7 +138,11 @@ const chineseBorderVariants = TEXT_LIBRARY.records.flatMap((record) => {
     (record.internalId === 'b-sulphdrop' && record.status === 'conflict')
   const canonical = BORDER_MODS.find((mod) => mod.id === record.internalId)
   if (!accepted || !canonical) return []
-  return [{ id: canonical.id, text: canonical.text, key: normalizeChineseBorder(record.cnText) }]
+  return [record.cnText, ...(record.internalId === 'b-scarabdrop'
+    // #66: the user-confirmed client says 一个; keep the acquired source
+    // numeral too. This exact alias does not repair OCR characters or tiers.
+    ? ['相邻区域的稀有怪物掉落一个额外圣甲虫'] : [])]
+    .map((wording) => ({ id: canonical.id, text: canonical.text, key: normalizeChineseBorder(wording) }))
 })
 
 function matchChineseBorder(raw: string): Match | null {

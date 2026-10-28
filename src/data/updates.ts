@@ -12,6 +12,10 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    date: '2026-10-28', tag: 'reworked', title: '国服边界改用本地中文识别助手',
+    detail: '国服采集候选 v0.2.1 接入固定版本 RapidOCR 与中文模型，F8 截图后在本机读取十二槽，保留未匹配时的手动补选。网页现兼容真实客户端“一个额外圣甲虫”；同图回放与 Windows 安装、游戏现场验收分开记录。',
+  },
+  {
     date: '2026-10-28', tag: 'reworked', title: '统一国服采集器名称与版本',
     detail: '导入说明改为下载 voyage-clip-collector-cn.ahk，并显示版本；运行浮窗、托盘及“版本与运行信息”可核对当前工具版本和权限，便于反馈与后续更新。',
   },
