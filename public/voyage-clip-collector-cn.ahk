@@ -1,5 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
-#SingleInstance Force
+#SingleInstance Ignore
 Persistent
 
 ; =====================================================================
@@ -35,7 +35,14 @@ Persistent
 ; =====================================================================
 
 CollectorId := "voyage-clip-collector-cn"
-CollectorVersion := "0.2.1"
+CollectorVersion := "0.2.2"
+CollectorReady := false
+CollectorInstallRoot := ""
+CollectorInstanceHandle := 0
+for i, arg in A_Args {
+    if (arg = "--install-root" && i < A_Args.Length)
+        CollectorInstallRoot := A_Args[i + 1]
+}
 
 Collecting := false
 Collected := []
@@ -172,7 +179,11 @@ OnClipChanged(dataType) {
 OnClipboardChange OnClipChanged
 
 ToggleCollect(*) {
-    global Collecting, Collected, LastCaptured, BorderBlob, BorderCount
+    global Collecting, Collected, LastCaptured, BorderBlob, BorderCount, CollectorReady
+    if !CollectorReady {
+        ShowStatus("采集器尚未就绪。请等待模型检查，或使用安装入口修复组件；不要开始采集。")
+        return
+    }
     if !Collecting {
         Collecting := true
         Collected := []
@@ -266,6 +277,10 @@ AnchorFractions := [
 
 RunBorderScan(testImage := "", testW := 0, testH := 0) {
     global
+    if (!CollectorReady && testImage = "") {
+        ShowStatus("边界读取尚未就绪。请等待本机模型检查，或使用安装入口修复组件。")
+        return
+    }
     if Scanning {
         ShowStatus("边界采集仍在运行，请稍候。")
         return
@@ -379,13 +394,103 @@ F7:: ToggleCollect()
 *F8:: RunBorderScan()
 +F7:: ToggleMute()
 
-A_TrayMenu.Insert("1&", "开启或结束海图采集 (F7)", ToggleCollect)
-A_TrayMenu.Insert("2&", "读取边界 (F8)", (*) => RunBorderScan())
-A_TrayMenu.Insert("3&", "切换提示音 (Shift+F7)", ToggleMute)
+A_TrayMenu.Delete()
+A_TrayMenu.Add("开启或结束海图采集 (F7)", ToggleCollect)
+A_TrayMenu.Add("读取边界 (F8)", (*) => RunBorderScan())
+A_TrayMenu.Add("切换提示音 (Shift+F7)", ToggleMute)
+A_TrayMenu.Add("版本与运行信息", (*) => ShowStatus(CollectorId " v" CollectorVersion "`n权限模式：" (A_IsAdmin ? "管理员" : "普通权限") "；F7 海图，F8 边界。", 10000))
+A_TrayMenu.Add("退出", (*) => ExitApp())
 A_TrayMenu.Default := "开启或结束海图采集 (F7)"
-A_TrayMenu.Insert("1&", "版本与运行信息", (*) => ShowStatus(CollectorId " v" CollectorVersion "`n权限模式：" (A_IsAdmin ? "管理员" : "普通权限") "；F7 海图，F8 边界。", 10000))
 A_IconTip := CollectorId " v" CollectorVersion "：F7 海图，F8 边界"
-ShowStatus("航程采集器已就绪：F7 采集海图，F8 读取边界。`n请手动 Ctrl+C 复制海图，或 Ctrl+Alt+C 高级复制；脚本不向游戏发送输入。", 6000)
+InitializeCollector()
+SetTimer CheckGamePermission, 5000
+
+InitializeCollector() {
+    global CollectorReady, CollectorVersion, CollectorInstallRoot, CollectorInstanceHandle
+    ShowStatus("正在检查本机组件与加载中文模型，尚未就绪…")
+    try {
+        if (CollectorInstallRoot != "") {
+            CollectorInstanceHandle := DllCall("CreateFileW", "Str", CollectorInstallRoot "\collector.running.lock", "UInt", 0x40000000, "UInt", 0, "Ptr", 0, "UInt", 4, "UInt", 0x80, "Ptr", 0, "Ptr")
+            if (CollectorInstanceHandle = -1) {
+                CollectorInstanceHandle := 0
+                throw Error("本工具可能已运行，或安装目录权限不足。请保留原批次，从桌面入口核对。")
+            }
+            OnExit CloseCollectorInstance
+        }
+        manifest := FileRead(A_ScriptDir "\collector-release.json", "UTF-8")
+        if (!RegExMatch(manifest, '"version"\s*:\s*"([^"]+)"', &version) || version[1] != CollectorVersion)
+            throw Error("脚本与清单版本不一致。")
+        if (!RegExMatch(manifest, '"autoHotkeyVersion"\s*:\s*"([^"]+)"', &runtime) || runtime[1] != A_AhkVersion)
+            throw Error("AHK 运行时与固定兼容版本不一致。请使用桌面入口。")
+        python := A_ScriptDir "\runtime\python\python.exe"
+        helper := A_ScriptDir "\collector\border_ocr.py"
+        if (!FileExist(python) || !FileExist(helper))
+            throw Error("缺少本工具的 Python 或 OCR 组件。")
+        process := ComObject("WScript.Shell").Exec('"' python '" "' helper '" --self-test')
+        deadline := A_TickCount + 120000
+        while (process.Status = 0) {
+            if (A_TickCount > deadline) {
+                process.Terminate()
+                throw Error("本机模型检查超时。")
+            }
+            Sleep 100
+        }
+        output := process.StdOut.ReadAll()
+        errorText := process.StdErr.ReadAll()
+        if (process.ExitCode != 0 || !RegExMatch(output, '"ready"\s*:\s*true'))
+            throw Error("本机 OCR 自检失败：" SubStr(errorText, 1, 400))
+        CollectorReady := true
+        ShowStatus("采集器已就绪｜" (A_IsAdmin ? "管理员模式" : "普通权限") "`nF7 采集海图，F8 读取边界；请手动 Ctrl+Alt+C 复制。`n退出：任务栏右下角采集器图标 → 退出。", 10000)
+    } catch as err {
+        ShowStatus("采集器未就绪｜组件或模型检查失败。`n" err.Message "`n请退出后重新双击“安装或更新国服海图采集器.cmd”修复；不要关闭防护。")
+    }
+}
+
+CloseCollectorInstance(*) {
+    global CollectorInstanceHandle
+    if CollectorInstanceHandle
+        DllCall("CloseHandle", "Ptr", CollectorInstanceHandle)
+}
+
+GameIsElevated(pid) {
+    processHandle := DllCall("OpenProcess", "UInt", 0x1000, "Int", false, "UInt", pid, "Ptr")
+    if !processHandle
+        return -1
+    token := 0
+    try {
+        if !DllCall("Advapi32\OpenProcessToken", "Ptr", processHandle, "UInt", 8, "Ptr*", &token)
+            return -1
+        elevation := Buffer(4, 0)
+        needed := 0
+        if !DllCall("Advapi32\GetTokenInformation", "Ptr", token, "Int", 20, "Ptr", elevation.Ptr, "UInt", 4, "UInt*", &needed)
+            return -1
+        return NumGet(elevation, 0, "UInt")
+    } finally {
+        if token
+            DllCall("CloseHandle", "Ptr", token)
+        DllCall("CloseHandle", "Ptr", processHandle)
+    }
+}
+
+CheckGamePermission(*) {
+    global CollectorReady, Collecting, Scanning, StatusMessage
+    static reported := false
+    if (A_IsAdmin || !CollectorReady || Collecting || Scanning || StatusMessage != "" || reported)
+        return
+    hwnd := FindPoeWindow()
+    if !hwnd
+        return
+    try elevated := GameIsElevated(WinGetPID(hwnd))
+    catch
+        elevated := -1
+    if (elevated = 1) {
+        reported := true
+        ShowStatus("游戏以管理员权限运行，请退出旧采集器，使用桌面“国服海图采集器”重新启动。")
+    } else if (elevated = -1) {
+        reported := true
+        ShowStatus("当前为普通权限，无法确认游戏权限。若 F8 只有游戏截图，请从桌面入口重新启动并核对管理员授权；其他识别失败仍需查看具体阶段。")
+    }
+}
 
 ; ---------------------------------------------------------------------
 ; The border-reading PowerShell helper. Runs Windows OCR locally on a

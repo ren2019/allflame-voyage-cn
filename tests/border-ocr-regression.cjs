@@ -221,6 +221,8 @@ assert.equal(collector.match(/^CollectorVersion := "([^"]+)"/m)?.[1], release.ve
 assert.equal(fs.existsSync(require('node:path').join(__dirname, '../public/voyage-clip-collector.ahk')), false,
   'the old unversioned download must not remain as a second maintained collector')
 assert.match(collector, /OnClipboardChange/)
+assert.match(collector, /#SingleInstance Ignore/, 'a second launch must retain the active instance and its unexported batch')
+assert.doesNotMatch(collector, /#SingleInstance Force/, 'restarting must not discard an active batch')
 assert.match(collector, /아이템 종류/, 'must recognise Korean chart headers')
 assert.match(collector, /物品类别/, 'downloaded collector must recognise mainland chart headers')
 assert.doesNotMatch(collector, /SetTimer\s+\(\)\s*=>\s*ToolTip\(\)/, 'transient messages must not erase an active F7 counter')

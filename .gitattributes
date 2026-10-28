@@ -1,2 +1,6 @@
 # Preserve the original Windows OCR replay bytes, including CRLF line ends.
 samples/border-ocr/issue-66/windows-ocr.txt -text whitespace=cr-at-eol
+# Preserve usable Windows entry points on every checkout, including macOS.
+public/collector/installer/*.cmd text eol=crlf
+public/collector/installer/*.ps1 text eol=crlf
+public/collector/installer/*.psm1 text eol=crlf
