@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "voyage-clip-collector-cn",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "script": "voyage-clip-collector-cn.ahk",
   "channel": "candidate",
   "compatibility": {

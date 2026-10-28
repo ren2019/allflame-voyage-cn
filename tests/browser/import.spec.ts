@@ -38,6 +38,42 @@ async function pasteCharts(page: Page, text: string) {
   }, text)
 }
 
+test('边界失败可逐槽查看完整原文，真实新旧输出与混合批次保留导入契约并清除旧详情', async ({ page }) => {
+  const oldOcr = readFileSync(new URL('../../samples/border-ocr/issue-66/windows-ocr.txt', import.meta.url), 'utf8')
+  const newOcr = readFileSync(new URL('../../samples/border-ocr/issue-66/rapidocr.txt', import.meta.url), 'utf8')
+  await pasteCharts(page, first)
+  expect((await exportState(page)).pool).toHaveLength(1)
+  await pasteCharts(page, oldOcr)
+  await expect(page.getByRole('status')).toContainText('已匹配 5/12')
+  const details = page.locator('.import-border-misses')
+  await details.getByText('查看未匹配边界文字（7处）', { exact: true }).click()
+  await expect(details.locator('li')).toHaveCount(7)
+  await expect(details.locator('li').first()).toContainText('位置 1')
+  await expect(details.locator('pre').first()).toHaveText('相 邻 区 域 包 a 2 个 额 外 宝 藏')
+  const before = await exportState(page)
+  await details.locator('summary').click()
+  expect(await exportState(page)).toEqual(before)
+  // Annotated derived input: one error replaces a real successful slot; this
+  // checks import feedback, not another game OCR success claim.
+  const partial = newOcr.replace('相邻区域包含2个额外宝藏锚', 'OCR ERROR: 文字识别失败，请重试或手动补选。')
+  await pasteCharts(page, first + '\n' + partial)
+  await expect(page.getByRole('status')).toContainText('已匹配 11/12')
+  expect((await exportState(page)).pool).toHaveLength(1)
+  expect((await exportState(page)).borders[0]).toBeNull()
+  await details.locator('summary').click()
+  await expect(details.locator('li')).toHaveCount(1)
+  await expect(details).toContainText('文字识别失败')
+  await page.setViewportSize({ width: 390, height: 900 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await pasteCharts(page, newOcr)
+  await expect(page.getByRole('status')).toContainText('已匹配 12/12')
+  await expect(details).toHaveCount(0)
+  await pasteCharts(page, oldOcr)
+  await expect(details).toHaveCount(1)
+  await importCharts(page, '这不是海图，也不是边界。')
+  await expect(details).toHaveCount(0)
+})
+
 for (const control of ['paste', 'button']) {
   test(`reported Tormented Cage chart imports through ${control} and retains its fields in backup`, async ({ page }) => {
     const text = tormentedCage.replace(/\n/g, '\r\n')
