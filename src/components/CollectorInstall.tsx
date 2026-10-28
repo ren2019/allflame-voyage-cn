@@ -24,17 +24,19 @@ export function CollectorInstall() {
   const [state, setState] = useState<ReleaseState>({ kind: 'loading' })
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
-    const controller = new AbortController()
+    let alive = true
     setState({ kind: 'loading' })
-    fetch(manifest, { signal: controller.signal }).then(async response => {
+    fetch(manifest).then(async response => {
       if (!response.ok) throw new Error('Manifest unavailable')
       const release: unknown = await response.json()
       if (!isCollectorRelease(release)) throw new Error('Invalid collector manifest')
-      if (!controller.signal.aborted) setState({ kind: 'ready', release })
+      if (alive) setState({ kind: 'ready', release })
     }).catch(() => {
-      if (!controller.signal.aborted) setState({ kind: 'error' })
+      if (alive) setState({ kind: 'error' })
     })
-    return () => controller.abort()
+    // This tiny public metadata request may finish after cleanup. Suppress stale
+    // state updates without cancelling StrictMode's first request.
+    return () => { alive = false }
   }, [attempt])
 
   return <section className="collector-install-card" aria-label="国服采集器安装">

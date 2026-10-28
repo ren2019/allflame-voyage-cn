@@ -7,6 +7,8 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
 test('主安装入口直接可见并打开真实中文候选说明，裸脚本仅在高级维护', async ({ page }) => {
+  const failedRequests: string[] = []
+  page.on('requestfailed', request => failedRequests.push(request.url()))
   await openEmptyApp(page)
   const card = page.getByRole('region', { name: '国服采集器安装', exact: true })
   await expect(card).toBeVisible()
@@ -33,6 +35,7 @@ test('主安装入口直接可见并打开真实中文候选说明，裸脚本�
   const response = await page.request.get((await download.getAttribute('href'))!)
   expect(response.ok()).toBe(true)
   expect(await response.text()).toContain(`CollectorVersion := "${manifest.version}"`)
+  expect(failedRequests).toEqual([])
 })
 
 

@@ -188,10 +188,11 @@ class MaintenanceTest(unittest.TestCase):
             frontdoor = output / '解压后的新候选'
             with zipfile.ZipFile(archive) as z:
                 z.extractall(frontdoor)
+            target_version = json.loads((frontdoor / 'payload/collector-release.json').read_text())['version']
             new_entry = frontdoor / 'manage-voyage-clip-collector-cn.ps1'
             result = self.invoke(root, 'Update', '-PackageArchive', str(archive), '-PrepareOnly', '-Offline', entry=new_entry)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn('当前 0.2.2 → 目标 0.2.4', result.stdout)
+            self.assertIn(f'当前 0.2.2 → 目标 {target_version}', result.stdout)
             self.assertIn('变化说明', result.stdout)
             self.assertEqual((root / 'current.json').read_bytes(), binding)
             cancelled = self.invoke(root, 'Update', '-PackageArchive', str(archive), input_text='\n', entry=new_entry)
@@ -200,11 +201,12 @@ class MaintenanceTest(unittest.TestCase):
             self.assertEqual((root / 'current.json').read_bytes(), binding)
             prepared_path = Path(next(line.removeprefix('PREPARED_PATH=') for line in result.stdout.splitlines()
                                       if line.startswith('PREPARED_PATH=')))
-            new_source = root / 'packages/0.2.4-abcdef13'
+            new_package_path = f'packages/{target_version}-abcdef13'
+            new_source = root / new_package_path
             with zipfile.ZipFile(archive) as z:
                 z.extractall(new_source)
             new_inventory = prepared_path / 'installed-files.json'
-            current.update(version='0.2.4', release=str(prepared_path.relative_to(root)), package='packages/0.2.4-abcdef13',
+            current.update(version=target_version, release=str(prepared_path.relative_to(root)), package=new_package_path,
                 inventory={'bytes': new_inventory.stat().st_size,
                            'sha256': hashlib.sha256(new_inventory.read_bytes()).hexdigest()})
             current_bytes = json.dumps(current).encode()

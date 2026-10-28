@@ -35,7 +35,7 @@ Persistent
 ; =====================================================================
 
 CollectorId := "voyage-clip-collector-cn"
-CollectorVersion := "0.2.4"
+CollectorVersion := "0.2.5"
 CollectorReady := false
 CollectorInstallRoot := ""
 CollectorInstanceHandle := 0
@@ -56,6 +56,7 @@ Scanning := false
 ScanPhase := ""
 LastFailure := ""
 LastScanFailure := ""
+LastReadFailure := ""
 RecentOutput := ""
 RecentOutputNote := ""
 LastBorderBlob := ""
@@ -160,19 +161,33 @@ ShowCollectorStatus(text) {
 }
 
 OnClipChanged(dataType) {
-    global Collecting, Collected, LastCaptured, LastCopiedLanguage
+    global Collecting, Collected, LastCaptured, LastCopiedLanguage, LastFailure, LastReadFailure
     if (!Collecting || dataType != 1)
         return
     text := ""
     try text := A_Clipboard
     catch {
-        ShowStatus("读取剪贴板失败，请重新手动复制海图。", 5000)
+        if (LastReadFailure != "")
+            LastFailure := Trim(StrReplace(LastFailure, LastReadFailure), "`r`n")
+        LastReadFailure := "海图读取失败：读取剪贴板失败。请重新手动 Ctrl+Alt+C 复制并核对计数；若已结束空批次，先按 F7 新建采集。"
+        LastFailure := LastFailure (LastFailure != "" ? "`n" : "") LastReadFailure
+        SaveCollectorDiagnostic("剪贴板读取", LastFailure)
+        ShowStatus(LastFailure)
         return
     }
     if (text = "")
         return
     if !IsChartText(text)
         return
+    if (LastReadFailure != "") {
+        ; A valid chart read recovers this phase only, including a duplicate.
+        ; Do not log the clipboard text or clear an unrelated output/OCR error.
+        LastFailure := Trim(StrReplace(LastFailure, LastReadFailure), "`r`n")
+        LastReadFailure := ""
+        recovered := "海图读取已恢复，请核对采集计数。" (LastFailure != "" ? "`n" LastFailure : "")
+        SaveCollectorDiagnostic("剪贴板读取恢复", recovered)
+        ShowStatus(recovered, 5000)
+    }
     LastCopiedLanguage := ChartLanguage(text)
     ; double-tap protection: the SAME chart copied twice in a row is one
     ; chart (two different-but-identical charts still count when they are
@@ -228,7 +243,7 @@ ShowCollectorDiagnostic(*) {
 }
 
 WriteCollectorOutput(content, note) {
-    global RecentOutput, RecentOutputNote, LastFailure, LastScanFailure
+    global RecentOutput, RecentOutputNote, LastFailure, LastScanFailure, LastReadFailure
     RecentOutput := content
     RecentOutputNote := note
     try A_Clipboard := content
@@ -238,10 +253,10 @@ WriteCollectorOutput(content, note) {
         ShowStatus(LastFailure)
         return false
     }
-    LastFailure := LastScanFailure
+    LastFailure := LastScanFailure (LastScanFailure != "" && LastReadFailure != "" ? "`n" : "") LastReadFailure
     message := note "`n内容已输出到剪贴板，请回网页 Ctrl+V；词缀匹配以网页结果为准。"
-    if (LastScanFailure != "")
-        message .= "`n" LastScanFailure
+    if (LastFailure != "")
+        message .= "`n" LastFailure
     SaveCollectorDiagnostic("内容已输出", message)
     ShowStatus(message)
     Beep(1200, 90)
@@ -269,7 +284,7 @@ RetryCollectorOutput(*) {
 }
 
 ToggleCollect(*) {
-    global Collecting, Collected, LastCaptured, BorderBlob, BorderCount, CollectorReady, Scanning, LastFailure, LastScanFailure
+    global Collecting, Collected, LastCaptured, BorderBlob, BorderCount, CollectorReady, Scanning, LastFailure, LastScanFailure, LastReadFailure
     if !CollectorReady {
         ShowStatus(LastFailure != "" ? LastFailure : "采集器尚未就绪。请等待模型检查，或使用安装入口修复组件；不要开始采集。")
         return
@@ -284,6 +299,7 @@ ToggleCollect(*) {
         LastCaptured := ""
         LastFailure := ""
         LastScanFailure := ""
+        LastReadFailure := ""
         ShowStatus("海图采集已开始。请逐张悬停并手动 Ctrl+Alt+C；F7 不会自动扫描仓库。")
         return
     }
@@ -385,7 +401,7 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
     Scanning := true
     ScanPhase := "截图中"
     LastScanFailure := ""
-    LastFailure := ""
+    LastFailure := LastReadFailure
     try {
         winX := 0, winY := 0
         winW := testW ? testW : A_ScreenWidth
@@ -470,12 +486,14 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             note .= "`n" SubStr(Trim(failure[1], " `t`r`n"), 1, 400)
         if (good < 12)
             note .= "`n未读取的位置可按住 Alt 后 F8 重试，或在网页手动补选。"
-        if (errors)
-            LastFailure := LastScanFailure := "文字读取含失败位置，请查看托盘“查看本地诊断”或网页未匹配原文。"
-        SaveCollectorDiagnostic("文字读取完成", note)
+        if (errors) {
+            LastScanFailure := "文字读取含失败位置，请查看托盘“查看本地诊断”或网页未匹配原文。"
+            LastFailure := LastScanFailure (LastReadFailure != "" ? "`n" LastReadFailure : "")
+        }
+        SaveCollectorDiagnostic("文字读取完成", note (LastReadFailure != "" ? "`n" LastReadFailure : ""))
         if Collecting {
             Beep(good ? 1000 : 300, 90)
-            ShowStatus(note "`n已加入当前批次，请再按 F7 统一输出海图和边界。")
+            ShowStatus(note "`n已加入当前批次，请再按 F7 统一输出海图和边界。" (LastReadFailure != "" ? "`n" LastReadFailure : ""))
         } else {
             if WriteCollectorOutput(blob, note) {
                 BorderBlob := ""
@@ -483,7 +501,8 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             }
         }
     } catch Error as err {
-        LastFailure := LastScanFailure := ScanPhase "失败，可以松开 Alt。`n" SubStr(err.Message, 1, 500) "`n请查看本地诊断，重试 F8 或在网页手动补选；不要将 OCR 错字都归因于权限。"
+        LastScanFailure := ScanPhase "失败，可以松开 Alt。`n" SubStr(err.Message, 1, 500) "`n请查看本地诊断，重试 F8 或在网页手动补选；不要将 OCR 错字都归因于权限。"
+        LastFailure := LastScanFailure (LastReadFailure != "" ? "`n" LastReadFailure : "")
         SaveCollectorDiagnostic(ScanPhase, LastFailure)
         ShowStatus(LastFailure)
         Beep(300, 150)
