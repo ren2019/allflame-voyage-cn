@@ -203,10 +203,10 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
               后运行脚本（在系统托盘中）。
             </li>
             <li>
-              按 <kbd>F7</kbd> 开启采集，计数浮窗显示海图数量、操作状态和采集错误。
+              按 <kbd>F7</kbd> 开启采集，放大的中文计数浮窗显示海图数量、操作状态和采集错误。
             </li>
             <li>
-              在国服逐张悬停已测绘海图，自行按 <kbd>Ctrl+Alt+C</kbd> 高级复制，计数器增加。
+              在国服逐张悬停已测绘海图，自行按 <kbd>Ctrl+C</kbd> 复制（已实测可用）；需要完整高级属性时使用 <kbd>Ctrl+Alt+C</kbd>，计数器增加。
               非海图和连续相同的海图文本会被忽略。
             </li>
             <li>

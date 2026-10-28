@@ -13,7 +13,7 @@ export interface UpdateEntry {
 export const UPDATES: UpdateEntry[] = [
   {
     date: '2026-10-28', tag: 'new', title: '国服海图与边界采集器',
-    detail: '在导入说明下载 Windows 采集器，F7 显示中文计数浮窗，逐张手动 Ctrl+Alt+C 汇总海图；按住 Alt 后 F8 在本机识别十二条边界，再一次粘贴导入。采集错误在中文浮窗提示，未匹配边界仍可手动选择。',
+    detail: '在导入说明下载 Windows 采集器，F7 显示放大的中文计数浮窗，逐张手动 Ctrl+C 或 Ctrl+Alt+C 汇总海图；按住 Alt 后 F8 在本机识别十二条边界，再一次粘贴导入。采集错误在中文浮窗提示，未匹配边界仍可手动选择。',
   },
   {
     date: '2026-10-28', tag: 'reworked', title: '仅突出特殊目的地',
