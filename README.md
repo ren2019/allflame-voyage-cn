@@ -58,7 +58,7 @@ GitHub Pages 的目标地址为 `https://ren2019.github.io/allflame-voyage-cn/`�
 
 ## Windows 海图与边界采集
 
-1. 在导入面板展开「导入说明与搜索参考」，下载国服采集器 `voyage-clip-collector-cn.ahk`，安装 AutoHotkey v2 后运行。页面显示脚本版本，可与运行浮窗、托盘悬停或「版本与运行信息」核对；候选版本及协议见 [发布清单](public/collector-release.json)。游戏与采集器应使用相同权限级别。
+1. 本轮提供待验收的[完整安装候选流程](public/collector/installer/使用说明.html)：解压候选包，双击“安装或更新国服海图采集器.cmd”，完成组件及模型检查后从桌面“国服海图采集器”启动并确认正常 Windows 管理员授权。尚未公开发布安装包；候选构建与实际验收边界见[安装验证说明](docs/acceptance/collector-install-73.md)。裸 `voyage-clip-collector-cn.ahk` 为高级维护入口，需要同版本固定组件，单独安装 AHK 不足以准备中文 OCR。页面、浮窗、托盘与[版本清单](public/collector-release.json)应一致。
 2. 按 F7 开启采集，放大的中文计数浮窗显示数量、状态和采集错误。逐张悬停已测绘海图，手动 Ctrl+C 复制；需要完整高级属性时使用 Ctrl+Alt+C。
 3. 需要边界时，自己按住 Alt 显示十二条提示，再按 F8。听到截图完成提示音或看到浮窗提示后松开 Alt，等待本机 OCR；图片不会上传。
 4. 再按 F7 结束，到网页 Ctrl+V 一次导入。只更新边界可不启用 F7，单独按住 Alt 后按 F8，完成后直接粘贴。Shift+F7 可静音，浮窗仍显示。

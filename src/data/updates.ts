@@ -12,6 +12,10 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    date: '2026-10-28', tag: 'new', title: '采集器安装候选与启动就绪检查',
+    detail: '准备中文双击安装候选、固定组件校验和桌面启动入口；启动前检查本地模型，管理员授权由玩家确认，重复启动保留原批次。导入说明可查看候选安装指引，真实 Windows 与游戏体验仍待玩家验收。',
+  },
+  {
     date: '2026-10-28', tag: 'reworked', title: '国服边界改用本地中文识别助手',
     detail: '国服采集候选 v0.2.1 接入固定版本 RapidOCR 与中文模型，F8 截图后在本机读取十二槽，保留未匹配时的手动补选。网页现兼容真实客户端“一个额外圣甲虫”；同图回放与 Windows 安装、游戏现场验收分开记录。',
   },

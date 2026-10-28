@@ -1,13 +1,15 @@
 {
   "schemaVersion": 1,
   "id": "voyage-clip-collector-cn",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "script": "voyage-clip-collector-cn.ahk",
   "channel": "candidate",
   "compatibility": {
     "autoHotkeyMajor": 2,
     "borderPayload": 1,
     "ocrRuntime": "collector/ocr-runtime.json",
-    "chineseOcr": "RapidOCR-ONNXRuntime 1.4.4 / PaddleOCRv4"
+    "chineseOcr": "RapidOCR-ONNXRuntime 1.4.4 / PaddleOCRv4",
+    "autoHotkeyVersion": "2.0.31",
+    "installRuntime": "collector/install-runtime.json"
   }
 }

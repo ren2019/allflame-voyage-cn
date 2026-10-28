@@ -186,7 +186,7 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
           <p className="muted">
             采集器<strong>不会向游戏发送按键或点击</strong>。所有按键由玩家自己操作；
             脚本读取主动复制的剪贴板内容，以及玩家按住 Alt 时的截图。
-            边界使用 Windows 本地简体中文 OCR，不上传图片。
+            边界使用本机 RapidOCR 简体中文 OCR，不上传图片。
           </p>
           <a
             className="ahk-dl"
@@ -197,6 +197,9 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
           </a>
           <p className="muted">
             脚本版本 v{collectorRelease.version}。运行后可在浮窗、托盘悬停或「版本与运行信息」中核对版本与权限。
+            此下载是高级维护入口，需要同版本的完整运行组件；普通玩家请按{' '}
+            <a href={`${import.meta.env.BASE_URL}collector/installer/使用说明.html`} target="_blank" rel="noopener noreferrer">安装候选说明</a>{' '}
+            使用完整候选包，单独安装 AHK 不足以准备中文识别。
           </p>
           <ol className="ahk-steps">
             <li>
@@ -204,7 +207,7 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
               <a href="https://www.autohotkey.com/" target="_blank" rel="noopener noreferrer">
                 AutoHotkey v2
               </a>{' '}
-              后运行脚本（在系统托盘中）。
+              并准备同版本的固定运行组件后运行脚本（高级维护方式，入口在系统托盘中）。
             </li>
             <li>
               按 <kbd>F7</kbd> 开启采集，放大的中文计数浮窗显示海图数量、操作状态和采集错误。
