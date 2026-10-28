@@ -300,6 +300,9 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             . " -ShotMarker " quote HelperShot quote
             . " -OutputPath " quote HelperOut quote
             . (testImage != "" ? " -ImagePath " quote testImage quote : "")
+        ; Hide only our status panel so it cannot cover a border tooltip.
+        ; Screenshot completion or the error path restores the current status.
+        ShowCollectorStatus("")
         Run command, , "Hide", &HelperPid
         ; beep the moment the screenshot is on disk so Alt can be released early -
         ; the OCR itself takes a few more seconds
