@@ -2,12 +2,20 @@
 [CmdletBinding()]
 param([string]$InstallRoot = '', [switch]$Elevated, [switch]$ValidateOnly)
 $ErrorActionPreference = 'Stop'
-Import-Module (Join-Path $PSScriptRoot 'collector-install.psm1') -Force -DisableNameChecking
+try { Import-Module (Join-Path $PSScriptRoot 'collector-install.psm1') -Force -DisableNameChecking }
+catch {
+    Write-Host '启动组件缺失或损坏。请重新解压完整候选包，双击“安装或更新国服海图采集器.cmd”修复；不要猜测命令或关闭防护。' -ForegroundColor Red
+    if ($env:OS -eq 'Windows_NT' -and -not $ValidateOnly) { $null = Read-Host '按 Enter 关闭' }
+    exit 1
+}
 if (-not $InstallRoot) {
     $InstallRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'voyage-clip-collector-cn'
 }
 $stage = '启动文件校验'
 try {
+    if (Test-Path -LiteralPath (Join-Path $InstallRoot 'transaction.json')) {
+        throw '存在尚未清理或恢复的维护事务，请先打开“国服海图采集器维护”；不会启动采集器。'
+    }
     Write-Host '[检查组件] 正在核对固定版本、安装登记与文件摘要，请稍候…'
     $installed = Get-CollectorInstallation $InstallRoot
     Write-Host "文件校验通过｜版本 $($installed.Registration.version)｜登记目录 $InstallRoot"
