@@ -1,0 +1,13 @@
+.collector-install-card { margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--panel2); color: var(--text); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.collector-install-card h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 0; font-size: 14px; }
+.collector-candidate { border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; color: var(--muted); font-size: 10px; font-weight: 400; }
+.collector-install-card p { margin: 8px 0; }
+.collector-entry-actions { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+.collector-install-primary { display: inline-flex; padding: 6px 9px; border: 1px solid var(--accent); border-radius: 4px; background: var(--panel); color: var(--accent); font-weight: 600; }
+.collector-release-status, .collector-delivery { color: var(--muted); }
+.collector-install-card ol { padding-left: 20px; margin: 8px 0; }
+.collector-install-card li { margin-bottom: 5px; }
+.collector-advanced { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 10px; }
+.collector-advanced summary { cursor: pointer; }
+.collector-advanced .ahk-dl { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.collector-install-card a:focus-visible, .collector-advanced summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }

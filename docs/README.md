@@ -3,6 +3,7 @@
 ## 使用
 
 - [项目介绍与一次航程的用法](../README.md)
+- [国服海图采集器：安装与使用（候选，真实 Windows 仍待玩家验收）](../public/collector/installer/使用说明.html)
 - [本地运行与局域网 HTTPS](local-deployment.md)
 - [中文校准：单条编辑、保存与导出](calibration.md)
 - [真实海图样本与解析预期](../samples/README.md)

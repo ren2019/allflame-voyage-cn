@@ -35,7 +35,17 @@ def build(output, full=False, components=None, download=False):
                         ignore=shutil.ignore_patterns('installer', '__pycache__', '*.pyc'))
         for file in (ROOT / 'public/collector/installer').iterdir():
             if file.is_file():
-                shutil.copy2(file, stage / file.name)
+                if file.name == '使用说明.html':
+                    # Keep the website copy authoritative; file:// needs metadata
+                    # embedded from the same release manifest rather than fetch.
+                    guide = file.read_text(encoding='utf-8')
+                    bundled = json.dumps(release, ensure_ascii=False).replace('<', r'\u003c')
+                    guide = guide.replace('<script id="collector-bundled-release" type="application/json">{}</script>',
+                        '<script id="collector-bundled-release" type="application/json">' + bundled + '</script>')
+                    guide = guide.replace('href="../../collector-release.json"', 'href="#bundled-release-details"')
+                    (stage / file.name).write_text(guide, encoding='utf-8')
+                else:
+                    shutil.copy2(file, stage / file.name)
         shutil.copy2(ROOT / 'LICENSE', stage / 'LICENSE')
         shutil.copy2(ROOT / 'THIRD_PARTY_NOTICES.md', stage / 'THIRD_PARTY_NOTICES.md')
         source = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()

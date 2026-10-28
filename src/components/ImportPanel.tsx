@@ -8,7 +8,7 @@ import type { AppState } from '../logic/storage'
 import { defaultState } from '../logic/storage'
 import type { ChartData } from '../types'
 import { CompactCopyText } from './CompactCopyText'
-import collectorRelease from '../../public/collector-release.json'
+import { CollectorInstall } from './CollectorInstall'
 
 interface Props {
   onFeedback?: (hits: ImportHit[]) => void
@@ -176,6 +176,7 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
         </div>
       )}
 
+      <CollectorInstall />
       <details className="import-reference">
         <summary>导入说明与搜索参考</summary>
         <details className="ahk-help">
@@ -190,62 +191,6 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
           <CompactCopyText label="硫磺 75% 以上（污秽蟹群，英文参考）" text={'"sul.*(7[5-9]|[89].|\\d..)%"'} />
         </details>
 
-        <details className="ahk-help">
-          <summary>📋 国服海图与边界采集器（Windows）</summary>
-          <p className="muted">
-            采集器<strong>不会向游戏发送按键或点击</strong>。所有按键由玩家自己操作；
-            脚本读取主动复制的剪贴板内容，以及玩家按住 Alt 时的截图。
-            边界使用本机 RapidOCR 简体中文 OCR，不上传图片。
-          </p>
-          <a
-            className="ahk-dl"
-            href={`${import.meta.env.BASE_URL}${collectorRelease.script}`}
-            download
-          >
-            ⬇ 下载国服 {collectorRelease.script}
-          </a>
-          <p className="muted">
-            脚本版本 v{collectorRelease.version}。运行后可在浮窗、托盘悬停或「版本与运行信息」中核对版本与权限。
-            此下载是高级维护入口，需要同版本的完整运行组件；普通玩家请按{' '}
-            <a href={`${import.meta.env.BASE_URL}collector/installer/使用说明.html`} target="_blank" rel="noopener noreferrer">安装候选说明</a>{' '}
-            使用完整候选包，单独安装 AHK 不足以准备中文识别。
-          </p>
-          <ol className="ahk-steps">
-            <li>
-              安装{' '}
-              <a href="https://www.autohotkey.com/" target="_blank" rel="noopener noreferrer">
-                AutoHotkey v2
-              </a>{' '}
-              并准备同版本的固定运行组件后运行脚本（高级维护方式，入口在系统托盘中）。
-            </li>
-            <li>
-              按 <kbd>F7</kbd> 开启采集，放大的中文计数浮窗显示海图数量、操作状态和采集错误。
-            </li>
-            <li>
-              在国服逐张悬停已测绘海图，自行按 <kbd>Ctrl+C</kbd> 复制（已实测可用）；需要完整高级属性时使用 <kbd>Ctrl+Alt+C</kbd>，计数器增加。
-              非海图和连续相同的海图文本会被忽略。
-            </li>
-            <li>
-              边界采集：<strong>按住 Alt</strong> 显示全部 12 个边界悬停提示，按{' '}
-              <kbd>F8</kbd>，听到截图完成提示音或看到浮窗提示后松开；文字在本机读取并加入批次。
-            </li>
-            <li>
-              再次按 <kbd>F7</kbd>，切回本页并按 <kbd>Ctrl+V</kbd>，一次导入海图与边界；
-              已在库存中的海图会跳过。
-            </li>
-          </ol>
-          <p className="muted small">
-            只更新边界时可单独按住 Alt 后按 F8，完成后直接在网页 Ctrl+V。
-            浮窗的边界数量表示已读取文字，最终词缀匹配数量和失败位置以网页反馈为准；未匹配的位置可点击外圈槽位手动选择。
-          </p>
-          <p className="muted small">
-            缺少简体中文 OCR 时，浮窗会提示安装方法；可在 Windows 设置的简体中文语言选项中安装光学字符识别组件，再按 F8 重试。
-          </p>
-          <p className="muted small">
-            <kbd>Shift+F7</kbd> 可关闭提示音，屏幕计数器继续工作。
-            游戏与采集器需要相同的权限级别才能响应快捷键。
-          </p>
-        </details>
         <p className="muted small">
           旧版自动批量操作脚本保持停用；上方被动采集器由玩家手动复制和截图，不会自动操作游戏。
         </p>
