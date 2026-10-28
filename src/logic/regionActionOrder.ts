@@ -116,6 +116,18 @@ export function regionActionOrder(
   } else if (strategyId === 'alc-and-go') {
     addNearest(occupied.filter(cell => targets[cell]?.targets.some(target => target.weight >= 75)), 4, '沿途目标')
     result.note = '沿实际连接顺路处理已识别的重要目标，其余区域不凑编号。编号是建议行动顺序，不是评分或放置顺序。'
+  } else if (strategyId === 'milky-meatfish') {
+    addNearest(withTarget('golden-lantern'), 2, '收黄金灯笼')
+    addNearest(withTarget('giant-starfish', 'rare-monster'), 2, cell => ({
+      label: targets[cell].targets.some(target => target.id === 'giant-starfish') ? '处理巨型海星' : '处理稀有怪',
+    }))
+    result.note = '先收集实际灯笼，再处理重点怪物；同格可有前后两个行动。编号是建议行动顺序，不是评分或放置顺序。'
+  } else if (strategyId === 'milky-ethereal') {
+    addNearest(withTarget('golden-lantern'), 2, '收黄金灯笼')
+    addNearest(withTarget('magic-monster', 'bathyspheres'), 2, cell => ({
+      label: targets[cell].targets.some(target => target.id === 'bathyspheres') ? '处理感染潜航球' : '处理魔法怪',
+    }))
+    result.note = '先收集实际灯笼，再处理魔法怪或感染潜航球；同格可有前后两个行动。编号是建议行动顺序，不是评分或放置顺序。'
   }
   if (actions.length === 0 && result.conditions.length === 0) result.note = null
   return result
