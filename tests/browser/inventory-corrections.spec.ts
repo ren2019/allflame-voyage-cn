@@ -4,6 +4,10 @@ import { defaultState } from '../../src/logic/storage'
 import type { ChartData } from '../../src/types'
 import { readFileSync } from 'node:fs'
 
+test.afterEach(async ({ page }, testInfo) => {
+  if (process.env.PLAYWRIGHT_BASE_URL) await page.screenshot({ path: testInfo.outputPath('production-synthetic-state.png'), fullPage: true })
+})
+
 const inventory = () => {
   const s = defaultState()
   s.pool = Array.from({ length: 11 }, (_, i): ChartData => ({ uid: `synthetic-${i}`, name: `合成海图${i}`, level: 83,
