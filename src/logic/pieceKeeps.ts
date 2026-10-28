@@ -236,14 +236,14 @@ export function selectPieceBank(
   const boss: PieceType = { key: 'kishara-boss-rush:all', strategyId: 'kishara-boss-rush',
     strategyName: '琪莎拉 Boss 速刷', reservationId: null, label: '全部琪莎拉海图',
     areaTypes: ['kisharas-rest'], recommended: 1, defaultKeep: 1, banks: true }
-  for (const chart of pool) if (chart.areaType === 'kisharas-rest') bank.set(chart.uid, boss)
+  for (const chart of pool) if (!chart.pendingDeletion && chart.areaType === 'kisharas-rest') bank.set(chart.uid, boss)
   for (const p of [...PIECE_TYPES, ...customPieceTypes(keeps)]) {
     if (!p.banks) continue
     if (p.reservationId && !prefs[p.reservationId]) continue
     const keep = keeps[p.key] ?? p.defaultKeep
     if (keep <= 0) continue
     pool
-      .filter((c) => !bank.has(c.uid) && matchesPiece(c, p))
+      .filter((c) => !c.pendingDeletion && !bank.has(c.uid) && matchesPiece(c, p))
       .sort(
         (a, b) =>
           tierValue(b, p) - tierValue(a, p) || rewardSum(b) - rewardSum(a) || b.level - a.level,
