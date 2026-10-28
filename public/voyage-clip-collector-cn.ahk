@@ -21,7 +21,7 @@ Persistent
 ;  F8 - border screenshot scan
 ;   1. In PoE, HOLD Alt yourself so all 12 border tooltips are shown.
 ;   2. Press F8. A beep tells you the screenshot is taken - let go.
-;   3. Windows OCR reads the 12 tooltips locally (nothing is uploaded,
+;   3. RapidOCR reads Chinese tooltips locally; other languages use Windows OCR (nothing is uploaded,
 ;      nothing leaves your PC) and the result lands on the clipboard -
 ;      or joins the F7 batch if copy mode is on.
 ;
@@ -35,7 +35,7 @@ Persistent
 ; =====================================================================
 
 CollectorId := "voyage-clip-collector-cn"
-CollectorVersion := "0.2.0"
+CollectorVersion := "0.2.1"
 
 Collecting := false
 Collected := []
@@ -299,6 +299,8 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             . " -Left " winX " -Top " winY " -Width " winW " -Height " winH
             . " -PointSpec " quote points quote
             . " -PreferredLanguage " quote PreferredOcrLanguage(poeHwnd) quote
+            . " -RapidPython " quote A_ScriptDir "\runtime\python\python.exe" quote
+            . " -RapidHelper " quote A_ScriptDir "\collector\border_ocr.py" quote
             . " -WorkPng " quote HelperPng quote
             . " -ShotMarker " quote HelperShot quote
             . " -OutputPath " quote HelperOut quote
@@ -401,6 +403,8 @@ param(
     [string]$PointSpec = '',
     [string]$ImagePath = '',
     [string]$PreferredLanguage = '',
+    [string]$RapidPython = '',
+    [string]$RapidHelper = '',
     [Parameter(Mandatory = $true)][string]$WorkPng,
     [Parameter(Mandatory = $true)][string]$ShotMarker,
     [Parameter(Mandatory = $true)][string]$OutputPath)
@@ -433,6 +437,21 @@ if ($ImagePath -ne '') {
     }
 }
 [System.IO.File]::WriteAllText($ShotMarker, 'SHOT')
+
+# Chinese uses the pinned offline helper. Capture/marker precede loading so
+# the status panel can tell the player exactly when to release Alt.
+if ($PreferredLanguage -like 'zh*') {
+    try {
+        if (-not (Test-Path -LiteralPath $RapidPython) -or -not (Test-Path -LiteralPath $RapidHelper)) {
+            throw '缺少国服本地识别组件。请使用安装入口准备或修复组件；裸脚本不会自动下载。仍可在网页手动选择边界。'
+        }
+        & $RapidPython $RapidHelper --image $WorkPng --points $PointSpec --output $OutputPath
+        if (-not (Test-Path -LiteralPath $OutputPath)) { throw '本地识别助手没有输出结果；请修复安装后重试。' }
+        exit $LASTEXITCODE
+    } finally {
+        Remove-Item -LiteralPath $WorkPng -Force -ErrorAction SilentlyContinue
+    }
+}
 
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 

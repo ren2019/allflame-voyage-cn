@@ -1,0 +1,36 @@
+=== VOYAGE BORDER 0 ===
+相邻区域包含2个额外宝藏锚
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 1 ===
+相邻区域中找到的通货总增75%
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 2 ===
+相邻区域的怪物群规模提高24%
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 3 ===
+相邻区域包含2个额外宝藏锚
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 4 ===
+相邻区域的稀有怪物掉落一个额外圣甲虫
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 5 ===
+相邻区域包含污秽蟹群
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 6 ===
+相邻海图在开始航行时有50%的几率不被消耗
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 7 ===
+相邻区域包含2个额外宝藏锚
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 8 ===
+相邻区域包含一个失落的海盗储物箱
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 9 ===
+相邻区域的怪物至少为魔法
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 10 ===
+相邻海图在开始航行时有30%的几率不被消耗
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 11 ===
+相邻区域包含2个额外宝藏锚
+=== END VOYAGE BORDER ===

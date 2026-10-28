@@ -108,7 +108,7 @@ test('all 64 IDs can be chosen through balanced categories, and all 13 currency 
       if (categoryName.startsWith('通货')) {
         const icons = chooser.locator('.border-currency img')
         await expect(icons).toHaveCount(13)
-        expect(await icons.evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
+        await expect.poll(() => icons.evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true)
         await option.focus()
         await page.keyboard.press('Space')
       } else await option.click()

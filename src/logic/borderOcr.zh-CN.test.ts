@@ -81,6 +81,13 @@ describe('mainland border text matching through collector payloads', () => {
     expect(result.misses).toEqual([])
   })
 
+  it('matches the client-confirmed singular scarab wording without repairing OCR mistakes', () => {
+    const result = parseBorderOcrPayload(block('相邻区域的稀有怪物掉落一个额外圣甲虫', 4))
+    expect(result.matches).toEqual([expect.objectContaining({ index: 4, id: 'b-scarabdrop', confidence: 1 })])
+    expect(parseBorderOcrPayload(block('相邻区域的稀有怪物掉詹一个额外圣甲虫')).matches).toEqual([])
+    expect(parseBorderOcrPayload(block('相邻区域的稀有怪物掉落二个额外圣甲虫')).matches).toEqual([])
+  })
+
   it('joins arbitrarily wrapped Chinese text, normalizes width and keeps the complete two-clause effect', () => {
     const text = '相 邻 区 域 中 找 到 的物品数量按每条连\r\n接降低５０％。\r\n相邻区域中找到的物品数量提高１８０％'
     expect(parseBorderOcrPayload(block(text)).matches[0]?.id).toBe('b-quantconn-2')
