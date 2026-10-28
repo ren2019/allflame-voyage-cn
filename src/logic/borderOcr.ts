@@ -122,7 +122,12 @@ const normalizeChineseBorder = (text: string): string => text
   .normalize('NFKC')
   .replace(/\\n/g, '\n')
   .replace(/\s+/gu, '')
-  .replace(/[，。；：、！？!?;:]/gu, '')
+  // Sentence punctuation is harmless, but deleting it between digits could
+  // turn an uncertain OCR value such as 1。6 into the valid 16% tier.
+  .replace(/[，。；：、！？!?;:]+/gu, (punctuation: string, offset: number, normalized: string) =>
+    /\d/.test(normalized[offset - 1] ?? '') && /\d/.test(normalized[offset + punctuation.length] ?? '')
+      ? punctuation : '',
+  )
 
 const chineseBorderVariants = TEXT_LIBRARY.records.flatMap((record) => {
   if (record.kind !== 'border' || !record.cnText) return []

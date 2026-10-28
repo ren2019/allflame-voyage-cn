@@ -207,6 +207,17 @@ test('国服边界文字随真实海图批次一次粘贴并直接导入指定�
   expect((await exportState(page)).pool).toHaveLength(6)
 })
 
+test('中文边界数字被标点分隔时不猜档位，并保留原边界', async ({ page }) => {
+  const block = (text: string) => `=== VOYAGE BORDER 0 ===\n${text}\n=== END VOYAGE BORDER ===`
+  await pasteCharts(page, block('相邻区域的怪物群规模提高 24%'))
+  await expect(page.getByRole('status')).toHaveText('已匹配 1/1 个边界词缀')
+
+  await pasteCharts(page, block('相邻区域的怪物群规模提高 1。6%'))
+  await expect(page.getByRole('status')).toHaveText('已匹配 0/1 个边界词缀; 未识别边界悬停文本，已保留原有边界')
+  await expect(page.locator('[data-border-segment="0"]')).toHaveAttribute('title', '相邻区域的怪物群规模提高 24%')
+  expect((await exportState(page)).borders).toEqual(['b-pack-2', null, null, null, null, null, null, null, null, null, null, null])
+})
+
 // Source-derived 12-slot payload with literal expected IDs, independent of the matcher.
 test('国服十二槽直接更新保留全量、部分、全失败和手动补选的原版行为', async ({ page }) => {
   const block = (index: number, text: string) => `=== VOYAGE BORDER ${index} ===\n${text}\n=== END VOYAGE BORDER ===`
