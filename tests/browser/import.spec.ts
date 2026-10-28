@@ -55,14 +55,17 @@ for (const control of ['paste', 'button']) {
   })
 }
 
-test('equivalent numeral and particle wording imports without broad fuzzy matching', async ({ page }) => {
-  const implicit = '相邻区域包含两个额外的瓶中信'
+for (const bottleName of ['瓶中信', '漂流瓶']) test(`equivalent numeral and particle wording imports ${bottleName} without broad fuzzy matching`, async ({ page }) => {
+  const implicit = `相邻区域包含两个额外的${bottleName}`
   const text = tormentedCage.replace('相邻区域包含一个额外罪魂牢笼 — 数值不可调整', implicit)
   await importCharts(page, text)
   await expect(page.getByRole('status')).toHaveText('已导入 1 张海图：海洋 航行 珊瑚密林海图')
   const state = await exportState(page)
   expect(state.pool).toHaveLength(1)
   expect(state.pool[0]).toMatchObject({ modIds: ['adj-msg-2'], implicitText: implicit })
+  await page.locator('.chart-grid .chart-sq').first().hover()
+  await expect(page.locator('.poe-tooltip')).toContainText('漂流瓶')
+  await expect(page.locator('.poe-tooltip')).not.toContainText('瓶中信')
   await importCharts(page, text.replace('相邻区域包含', '所有航行区域包含'))
   await expect(page.getByRole('status')).toHaveText('拒绝 1 项无法识别')
   await expect(page.locator('.chart-grid .chart-sq')).toHaveCount(1)

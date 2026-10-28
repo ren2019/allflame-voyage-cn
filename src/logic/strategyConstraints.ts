@@ -7,7 +7,8 @@ export const BOSS_STRATEGY = 'kishara-boss-rush'
 const conversionMods = new Set(['adj-gold-1', 'adj-gold-2'])
 const conversionBorders = new Set(['b-gold-1', 'b-gold-2'])
 
-/** Safety uses actual effects even when their scoring weights are disabled. */
+/** Loot safety includes equipment conversion and global equipment prohibition,
+ * even when their scoring weights are disabled. */
 export function bossConversionConflict(board: Board, borders: Borders, charts: Map<string, ChartData>, opts: ScoreOptions): boolean {
   const boss = board.findIndex((p) => p && charts.get(p.chartUid)?.areaType === 'kisharas-rest')
   if (boss < 0) return false
@@ -15,7 +16,7 @@ export function bossConversionConflict(board: Board, borders: Borders, charts: M
   const scope = boardEffectScope(board, charts, opts)
   return board.some((p, i) => p && charts.get(p.chartUid)?.modIds.some((id) => {
     const mod = voyageModById.get(id)
-    return conversionMods.has(id) && mod && scope.targets(i, mod.scope).includes(boss)
+    return (conversionMods.has(id) || id === 'voy-noequip') && mod && scope.targets(i, mod.scope).includes(boss)
   }))
 }
 

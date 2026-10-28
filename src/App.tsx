@@ -1,3 +1,4 @@
+import { mainlandDisplayText } from './data/textLibrary'
 import type { ImportHit } from './logic/importDedupe'
 import { createVoyageRecord } from './logic/voyageHistory'
 import { saveTheme } from './logic/theme'
@@ -403,10 +404,10 @@ export default function App() {
     else setPreserveConfirm({ id, candidates, index: 0, kept: [] })
   }
 
-  // the VERBATIM imported line comes first: the in-game search must match the
-  // game's own wording, and our stored mod texts can drift from it (issue #3)
+  // Prefer imported wording; apply the user-confirmed mainland item name
+  // only at display/copy boundaries, keeping stored evidence intact.
   const chartImplicit = (chart: ChartData): string =>
-    chart.implicitText ??
+    (chart.implicitText ? mainlandDisplayText(chart.implicitText) : undefined) ??
     chart.modIds.map((id) => voyageModById.get(id)).filter((m) => m && m.scope !== 'self').map((m) => voyageModText(m!.id))[0] ??
     ''
   const startCopySeq = () => {

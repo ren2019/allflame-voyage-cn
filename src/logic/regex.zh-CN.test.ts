@@ -26,6 +26,15 @@ describe('existing strategy game-search recipes use reviewed Chinese source phra
     const expression = example.recipe === 'master' ? ALL_GOOD_MODS_REGEX : strategyById.get(example.recipe)!.searchRegex!
     expect(expression).toMatch(/\p{Script=Han}/u)
     const regex = new RegExp(expression.replace(/^"|"$/g, ''))
-    expect(regex.test(example.text)).toBe('matches' in example ? example.matches : true)
+    // Keep the acquired fixture intact; apply the user's 2026-10-28 terminology decision.
+    expect(regex.test(example.text.replace(/瓶中信/g, '漂流瓶'))).toBe('matches' in example ? example.matches : true)
   })
+})
+
+
+it('uses the current mainland bottle name for old imported text without rewriting the inventory', () => {
+  const chart = { uid: 'legacy-bottle', name: '合成海图', level: 83, edges: [true, true, true, true] as [boolean, boolean, boolean, boolean], modIds: ['adj-msg-1'], implicitText: '相邻区域包含 1 个额外瓶中信' }
+  expect(buildSingleChartSearch(chart)).toContain('漂流瓶')
+  expect(buildSingleChartSearch(chart)).not.toContain('瓶中信')
+  expect(chart.implicitText).toBe('相邻区域包含 1 个额外瓶中信')
 })

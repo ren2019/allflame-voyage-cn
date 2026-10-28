@@ -93,3 +93,15 @@ describe('Boss actual effect scope #46', () => {
     expect(bossPreservation(s.board, s.borders, map())).toEqual(['边界7：50%', '边界12：30%'])
   })
 })
+
+
+it('Boss refuses global no-equipment even if disabled for scoring, including locked and surplus charts', () => {
+  const s = state(); s.strategyId = 'kishara-boss-rush'; s.pool[6].areaType = 'kisharas-rest'
+  s.pool[0].modIds = ['voy-noequip']; s.pool[1].modIds = ['voy-noequip']
+  s.disabledMods = ['voy-noequip']
+  const pool = selectStrategySolvePool(s.pool, strategyById.get(s.strategyId)!, s.strategyReservations, new Set(['0', '1']), { 'milky-meatfish:voy-noequip|voy-fracture': 0 }).solvePool
+  expect(pool.some((c) => c.modIds.includes('voy-noequip'))).toBe(false)
+  expect(bossConversionConflict(s.board, s.borders, new Map(s.pool.map((c) => [c.uid, c])), { adjacencyMode: 'physical', adjacentAffectsSelf: false })).toBe(true)
+  expect(isExecutableResult({ board: s.board, valid: true, score: 0, reward: 0 }, s,
+    createSolveResultContext(s, s.pool, Array(9).fill(null), 'strategy'))).toBe(false)
+})

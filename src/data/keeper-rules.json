@@ -43,8 +43,8 @@
       "source": "chart-implicit:voy-fracture; 区别于物品分裂"
     },
     "message": {
-      "label": "瓶中信",
-      "pattern": "瓶中信",
+      "label": "漂流瓶",
+      "pattern": "漂流瓶",
       "source": "chart-implicit:adj-msg-1/2"
     },
     "divbox": {

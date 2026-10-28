@@ -78,7 +78,7 @@ for (const width of [1440, 390]) {
   await page.getByText('🎲 洗练与保留海图（搜索参考）', { exact: true }).click()
     // Literals preserved from the original search references, rather than importing implementation constants.
     const references = [
-      ['优质词缀（简中候选）', '"至少为魔法|无法掉落|被附身|分裂|瓶中信|神圣的秘宝|奥术师|侦探|巨型海星|众神词缀|腰带|黄金灯笼|4000.*鬼灵|保险箱|所有航行区域的稀有怪物数量|所有航行区域中找到的亡者硫磺"'],
+      ['优质词缀（简中候选）', '"至少为魔法|无法掉落|被附身|分裂|漂流瓶|神圣的秘宝|奥术师|侦探|巨型海星|众神词缀|腰带|黄金灯笼|4000.*鬼灵|保险箱|所有航行区域的稀有怪物数量|所有航行区域中找到的亡者硫磺"'],
       [quantity, quantityRegex],
       ['硫磺 75% 以上（污秽蟹群，英文参考）', '"sul.*(7[5-9]|[89].|\\d..)%"'],
     ]

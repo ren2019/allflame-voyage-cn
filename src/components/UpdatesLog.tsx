@@ -1,3 +1,4 @@
+import { mainlandDisplayText } from '../data/textLibrary'
 import { useId, useState } from 'react'
 import { UPDATES, UPSTREAM_UPDATES } from '../data/updates'
 
@@ -39,7 +40,7 @@ export function UpdatesLog({ onClose }: Props) {
                 <span className="spacer" />
                 <span className="update-date muted">{u.date}</span>
               </div>
-              <div className="update-detail muted">{u.detail}</div>
+              <div className="update-detail muted">{mainlandDisplayText(u.detail)}</div>
             </div>
           ))}
         </div>

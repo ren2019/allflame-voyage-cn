@@ -45,7 +45,7 @@ it('两种神圣策略各覆盖自己的目的地和供给材料，不能以旧�
 })
 
 it('速刷与稀有怪传说装保留全部替代材料且区分分裂类型，无规则时不虚构', () => {
-  for (const material of ['相邻区域包含 1 个额外瓶中信', '相邻区域包含 2 个额外神圣的秘宝', '相邻区域包含 2 个额外侦探的保险箱', '物品数量: +110%']) {
+  for (const material of ['相邻区域包含 1 个额外漂流瓶', '相邻区域包含 2 个额外神圣的秘宝', '相邻区域包含 2 个额外侦探的保险箱', '物品数量: +110%']) {
     expect(search('milky-speedrun', material), material).toBe(true)
   }
   expect(search('milky-speedrun', '物品数量: +109%')).toBe(false)

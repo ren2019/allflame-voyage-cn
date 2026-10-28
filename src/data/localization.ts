@@ -1,4 +1,4 @@
-import { TEXT_LIBRARY } from './textLibrary'
+import { TEXT_LIBRARY, mainlandDisplayText } from './textLibrary'
 import { voyageModById } from './mods'
 import { STAT_LABELS } from '../types'
 
@@ -17,7 +17,7 @@ const shapes = new Map(TEXT_LIBRARY.records
 /** Display wording only. Conflicting cm-* templates never become parser aliases. */
 export function voyageModText(id: string): string {
   const acquired = sourceText.get(id)
-  if (acquired) return acquired
+  if (acquired) return mainlandDisplayText(acquired)
   const mod = voyageModById.get(id)
   if (!mod) return '未识别词缀'
   if (mod.scope === 'self') return mod.effects.map((effect) =>
