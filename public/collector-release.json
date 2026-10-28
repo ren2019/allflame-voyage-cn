@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "voyage-clip-collector-cn",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "script": "voyage-clip-collector-cn.ahk",
   "channel": "candidate",
   "compatibility": {
@@ -13,8 +13,8 @@
     "installRuntime": "collector/install-runtime.json"
   },
   "changes": [
-    "维护入口可查看当前与目标版本，更新失败恢复稳定入口、快捷方式及登记。",
-    "同版本检查/修复复用固定组件缓存，缺件不妨碍打开维护入口。",
-    "卸载只清理登记内容，保留诊断、主动保存资料、网页库存及共享微软运行库。"
+    "海图剪贴板读取失败保留阶段原因和本地诊断，重新成功读取或新批次后恢复。",
+    "维护回滚共用既有登记文件清理，继续保留改动和用户资料。",
+    "网页候选版本请求完成后再忽略过期响应，不因页面清理主动取消。"
   ]
 }

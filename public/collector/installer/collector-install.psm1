@@ -420,16 +420,7 @@ function Restore-CollectorTransaction([string]$InstallRoot) {
                 [IO.File]::SetAttributes($target, [IO.FileAttributes]$entry.attributes)
             } elseif (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target -Force }
         }
-        foreach ($entry in $journal.createdFiles) {
-            if ($entry.path -notmatch '^(releases|packages)/\d+\.\d+\.\d+-[a-f0-9]{8}/') { throw '事务新文件归属无效，已保留。' }
-            $file = Get-CollectorPath $InstallRoot $entry.path
-            Assert-CollectorOwnedLocation $InstallRoot $file
-            if (Test-Path -LiteralPath $file -PathType Leaf) {
-                try { Assert-CollectorFile $file $entry } catch { Write-Host "保留已修改文件：$file"; continue }
-                Remove-Item -LiteralPath $file -Force
-                Remove-CollectorEmptyParents $InstallRoot $file
-            }
-        }
+        Remove-CollectorCreatedFiles $InstallRoot $journal.createdFiles
         Write-Host '已恢复中断前的稳定入口、快捷方式及版本登记；请启动后再做真实模型检查。'
     } else { Write-Host '上次切换已提交，保留已提交版本并清理事务记录。' }
     Remove-CollectorTransactionFiles $InstallRoot $journal
