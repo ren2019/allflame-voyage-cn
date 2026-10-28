@@ -1,6 +1,5 @@
 import { bossPreservation } from '../logic/strategyConstraints'
-import { borderModById } from '../data/mods'
-import { borderTouches } from '../types'
+import { solveBossCandidates } from '../logic/bossCandidates'
 import { useRef, useState } from 'react'
 import { solve, type SolverResult, type SolverOptions } from '../logic/solver'
 import type { AppState } from '../logic/storage'
@@ -82,43 +81,29 @@ export function SolveBar({ state, activeStrategy, results, resultContext, applie
           strategyLayoutPenalty: effectiveStrategy?.layoutPenalty,
           locked,
         }
-        const res = solve(solvePool, state.borders, weights, options)
-        if (effectiveStrategy?.id === 'kishara-boss-rush') {
-          // Try the preferred start explicitly, so a large reward cannot
-          // displace an available legal start placement.
-          const start = solve(solvePool, state.borders, weights, { ...options, bossCells: [6] }).filter((r) => r.valid && r.board.every(Boolean))
-          if (start.length) res.splice(0, res.length, ...start)
-          const keepCells = [...new Set(state.borders.flatMap((id, i) => id && borderModById.get(id)?.effects.some((e) => e.stat === 'preserve' && e.percent > 0) ? [borderTouches(i)] : []))]
-          if (keepCells.length && !res.some((r) => r.valid && bossPreservation(r.board, state.borders, new Map(solvePool.map((c) => [c.uid, c]))).length)) {
-            const alternatives = solve(solvePool, state.borders, weights, { ...options, bossCells: keepCells }).filter((r) => r.valid && r.board.every(Boolean))
-            if (alternatives[0]) res.push(alternatives[0])
-          }
-        }
+        const boss = effectiveStrategy?.id === 'kishara-boss-rush'
+        const bossSearch = boss ? solveBossCandidates(solvePool, state.borders, weights, options) : null
+        const res = bossSearch?.results ?? solve(solvePool, state.borders, weights, options)
         const context = createSolveResultContext(state, solvePool, locked, refill ? 'refill' : 'strategy')
         const candidates = refill ? res.filter((r) => isExecutableResult(r, state, context)) : res
         onResults(candidates, context)
         // loading the best result right away saves the extra click - the
         // alternatives stay one click away in the strip below
-        if (candidates.length > 0) onApply(candidates[0], 0)
-        const notes: string[] = []
-        if (effectiveStrategy?.id === 'kishara-boss-rush') {
-          const map = new Map(solvePool.map((c) => [c.uid, c]))
-          if (res[0]?.board[6] && map.get(res[0].board[6].chartUid)?.areaType !== 'kisharas-rest') notes.push('本次未找到合法左下摆法，Boss 已改用其他合法位置。')
-          if (!res.some((r) => r.valid && bossPreservation(r.board, state.borders, map).length)) notes.push('未提供保图备选：没有可用边界，或本次搜索未找到满足连接、锁定及转金币约束的保图摆盘。')
-        }
+        if (candidates.length > 0 && (!boss || isExecutableResult(candidates[0], state, context))) onApply(candidates[0], 0)
+        const notes: string[] = [...(bossSearch?.notes ?? [])]
         const lockedCount = locked.filter(Boolean).length
         if (lockedCount > 0)
           notes.push(`已固定 ${lockedCount} 张锁定海图的位置和朝向。`)
         if (heldBack > 0)
           notes.push(
-            `为 ${heldBackFor.join('、')} 保留了 ${heldBack} 张海图。可在库存的 🔖 保留向导中调整数量。`,
+            `为 ${heldBackFor.join('、')} 保留了 ${heldBack} 张海图。${boss ? '琪莎拉策略不会使用锚地；其他材料预留可在库存的 🔖 保留向导中调整。' : '可在库存的 🔖 保留向导中调整数量。'}`,
           )
         if (solvePool.length < 9)
           notes.push(`仅有 ${solvePool.length} 张可用海图，无法填满九格。`)
         else if (!res.length)
           notes.push('未找到满足必带目的地数量、锁定及连接约束的摆盘；请核对材料与锁定。')
         else if (res.length && !isExecutableResult(res[0], state, context))
-          notes.push('这些海图无法组成可执行摆盘，当前显示最佳参考方案。')
+          notes.push(boss ? '本次未找到可执行摆盘，仅显示参考候选；未更改当前摆盘。' : '这些海图无法组成可执行摆盘，当前显示最佳参考方案。')
         if (refill) notes.push(candidates.length ? `已补齐 ${state.board.filter((p) => !p).length} 个空位，其余格不变；请核对游戏实际摆放。` : '本次未找到合法补位，原盘及空位保持不变；请核对材料和固定格约束。')
         setSolveNote(notes.join(' '))
       } finally {

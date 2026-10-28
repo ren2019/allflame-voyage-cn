@@ -13,6 +13,10 @@
     "maintainer-initial": {
       "label": "#21 初始权重约定",
       "url": "https://github.com/ren2019/allflame-voyage-cn/issues/21"
+    },
+    "kishara-preservation": {
+      "label": "#59 已确认的琪莎拉保图适配权重",
+      "url": "https://github.com/ren2019/allflame-voyage-cn/issues/59"
     }
   },
   "strategies": {
@@ -4079,6 +4083,523 @@
             "strategy-reference",
             "border-reference",
             "maintainer-initial"
+          ]
+        }
+      }
+    },
+    "kishara-boss-rush": {
+      "requiredBorderId": null,
+      "weights": {
+        "b-pack-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-pack-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-pack-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-minmagic": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rare-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rare-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rare-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-beasts-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-beasts-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-beasts-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-crabs-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-crabs-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-crabs-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-drowned-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-drowned-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-drowned-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-mag-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-mag-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-mag-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-keep-1": {
+          "weight": 8,
+          "reason": "琪莎拉实际接触该边界且连接合法、没有装备转金币冲突时，可获得30%不消耗海图机会；这是相对适配权重，不合并不同来源概率。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-keep-2": {
+          "weight": 10,
+          "reason": "琪莎拉实际接触该边界且连接合法、没有装备转金币冲突时，可获得50%不消耗海图机会；这是相对适配权重，不合并不同来源概率。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-octoboss": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-lanterns": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-ancient": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-divine": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-exalt": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-annul": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-chaos": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-vaal": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-gcp": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-chrome": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-regret": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-blessed": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-regal": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-support": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-locker": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-pirates": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rareconn-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rareconn-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-quantconn-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-quantconn-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-gold-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-gold-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-decks": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-scarabdrop": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-curr-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-curr-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-curr-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-scarab-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-scarab-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-scarab-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rarity-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rarity-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-rarity-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-crabboss": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-exp-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-exp-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-exp-3": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-magicmods": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-anchor-1": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-anchor-2": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-sulphdrop": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-goldlantern": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
+          ]
+        },
+        "b-izaro": {
+          "weight": 0,
+          "reason": "该边界本次不新增琪莎拉专项适配加分；零分不代表无一般价值，仍须检查装备转金币冲突。",
+          "sourceIds": [
+            "border-reference",
+            "kishara-preservation"
           ]
         }
       }

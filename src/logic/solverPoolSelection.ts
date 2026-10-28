@@ -34,6 +34,12 @@ export function selectStrategySolvePool(
       heldFor.add('琪莎拉 Boss 速刷（全部保护）')
       return false
     }
+    // Boss fillers must never consume Anchorfield materials, even surplus,
+    // custom keep-count overrides or pinned charts.
+    if (strategy?.id === 'kishara-boss-rush' && chart.areaType === 'anchorfield') {
+      heldFor.add('锚地赐福（全部锚地保护）')
+      return false
+    }
     if (lockedUids.has(chart.uid)) return true
     const owner = bank.get(chart.uid)
     if (!owner || owner.strategyId === strategy?.id) return true
