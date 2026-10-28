@@ -1,6 +1,6 @@
 # 国服采集器候选核对与证据边界
 
-此页供维护者准备 #77 交付，玩家使用 [十五项验收记录](collector-player-checklist.md) 和最终 ZIP 中的“使用说明.html”。它不授权安装到用户电脑、操作游戏、自动合并、公开 Release 或部署。#76 自身和最终自主检查未齐备前，#77仍为准备中；全部自主材料完成后才转 ready-for-human，保持 open。
+此页供维护者准备 #77 交付，玩家使用 [十五项验收记录](collector-player-checklist.md) 和最终 ZIP 中的“使用说明.html”（站点同版相对入口为 `collector/installer/使用说明.html`）。它不授权安装到用户电脑、操作游戏、自动合并、公开 Release 或部署。#76 自身和最终自主检查未齐备前，#77仍为准备中；全部自主材料完成后才转 ready-for-human，保持 open。
 
 ## 最终制品的唯一依据
 
@@ -15,6 +15,8 @@
 | 自动结果与实际范围 | 同一交付报告分别记命令、实际结果、源码提交和证据；失败/跳过不能改写成通过 |
 | Windows / 游戏 / 新手结果 | 十五项人工表逐项记录，初始全部 NOT EXECUTED |
 | 旧→新和受控失败资料 | 独立目录、真实旧版本清单及摘要；派生拒绝输入单独说明、单独摘要，永不混入正常 ZIP |
+
+[维护入口与事务说明](collector-maintenance-75.md) 已记录真实旧版升级前门：旧0.2.2/0.2.3没有维护菜单，必须解压新包后双击**新包**“安装或更新国服海图采集器.cmd”；新版安装后才有桌面维护入口。旧→新实际归档准备、取消/坏摘要保原绑定及缓存不变的自动检查，不能替代真实Windows激活。
 
 0.2.2 / 0.2.3 是已存在的真实旧候选，可作升级基准；它们的旧提交、摘要及通过范围不代表最终版本。最终 normal / old-version / derived-rejection 三类制品在外部交付目录分开，ZIP和个人路径不进入仓库。
 
@@ -37,7 +39,7 @@ python3 scripts/build-collector.py --output "$VOYAGE_CANDIDATE_OUTPUT" --full --
 
 `ValidateOnly` 只检查清单与文件；`PrepareOnly` 展开真实固定归档但不登记已就绪，不执行 Windows 原生组件。已有 `tests/collector/test_install_package.py` 覆盖可复现构建、坏摘要拒绝、缺归档、中文/空格/单引号路径、真实归档/模型/许可和受控登记文件核对；复用它，不另写一套摘要自证测试。受控登记只用于 `launch ... -ValidateOnly`，绝不能据此称 Windows模型或授权已通过。
 
-在已明确提供的隔离 PowerShell、完整归档和 Python 3.11 OCR 环境中执行既有 CLI 回归；需要真实原图的用例由 `VOYAGE_OCR_IMAGE` 显式提供。缺变量的跳过须原样报告。逻辑、整页、构建、国服更新记录检查以及最终审查按 CONTRIBUTING 执行；总门禁已知旧 scoring 字节指纹失败单独报告，不替换摘要或降低断言。
+在已明确提供的隔离 PowerShell、完整归档、真实旧0.2.2候选（`VOYAGE_OLD_COLLECTOR_PACKAGE`）和 Python 3.11 OCR 环境中执行既有 CLI 回归；需要真实原图的用例由 `VOYAGE_OCR_IMAGE` 显式提供。缺变量的跳过须原样报告。逻辑、整页、构建、国服更新记录检查以及最终审查按 CONTRIBUTING 执行；总门禁已知旧 scoring 字节指纹失败单独报告，不替换摘要或降低断言。
 
 ## 自动与人工分层
 
