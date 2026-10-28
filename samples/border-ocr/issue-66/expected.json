@@ -1,0 +1,70 @@
+{
+  "sourceFilename": "screenshot-0006.png",
+  "sourceSha256": "0edb1113cad428107694b5b8258251fc70f21b9aeed12fb262de7b0259a0253b",
+  "width": 2560,
+  "height": 1440,
+  "provenance": "User supplied original on 2026-10-28; independent visual transcription before final helper replay. Slot order top L>R, right T>B, bottom L>R, left T>B. Original remains local (inventory visible).",
+  "client": "S30 visible; exact client build and display scaling unknown",
+  "slots": [
+    {
+      "index": 0,
+      "id": "b-anchor-1",
+      "text": "相邻区域包含 2 个额外宝藏锚"
+    },
+    {
+      "index": 1,
+      "id": "b-curr-2",
+      "text": "相邻区域中找到的通货总增 75%"
+    },
+    {
+      "index": 2,
+      "id": "b-pack-2",
+      "text": "相邻区域的怪物群规模提高 24%"
+    },
+    {
+      "index": 3,
+      "id": "b-anchor-1",
+      "text": "相邻区域包含 2 个额外宝藏锚"
+    },
+    {
+      "index": 4,
+      "id": "b-scarabdrop",
+      "text": "相邻区域的稀有怪物掉落一个额外圣甲虫"
+    },
+    {
+      "index": 5,
+      "id": "b-octoboss",
+      "text": "相邻区域包含污秽蟹群"
+    },
+    {
+      "index": 6,
+      "id": "b-keep-2",
+      "text": "相邻海图在开始航行时有 50% 的几率不被消耗"
+    },
+    {
+      "index": 7,
+      "id": "b-anchor-1",
+      "text": "相邻区域包含 2 个额外宝藏锚"
+    },
+    {
+      "index": 8,
+      "id": "b-locker",
+      "text": "相邻区域包含一个失落的海盗储物箱"
+    },
+    {
+      "index": 9,
+      "id": "b-minmagic",
+      "text": "相邻区域的怪物至少为魔法"
+    },
+    {
+      "index": 10,
+      "id": "b-keep-1",
+      "text": "相邻海图在开始航行时有 30% 的几率不被消耗"
+    },
+    {
+      "index": 11,
+      "id": "b-anchor-1",
+      "text": "相邻区域包含 2 个额外宝藏锚"
+    }
+  ]
+}

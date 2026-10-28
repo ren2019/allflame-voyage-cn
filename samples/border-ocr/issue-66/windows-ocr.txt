@@ -1,0 +1,36 @@
+=== VOYAGE BORDER 0 ===
+相 邻 区 域 包 a 2 个 额 外 宝 藏
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 1 ===
+相 邻 区 域 中 找 到 的 通 货 总 增 75 ％
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 2 ===
+相 邻 区 域 的 怪 物 群 规 模 提 高 24 ％
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 3 ===
+相 邻 区 域 包 a 2 个 额 外 宝 藏
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 4 ===
+相 邻 区 域 的 稀 有 怪 物 掉 詹 一 个 额 外 圣 甲 虫
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 5 ===
+相 邻 区 域 包 a 污 秽 蟹 群
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 6 ===
+相 邻 海 图 在 开 始 航 行 时 有 50 ％ 的 几 率 不 被 消 耗
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 7 ===
+相 邻 区 域 包 a 2 个 额 外 宝 藏
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 8 ===
+相 邻 区 域 包 a 一 个 矢 詹 的 海 盗 储 物 箱
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 9 ===
+相 邻 区 域 的 怪 物 至 少 为 魔 法
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 10 ===
+相 邻 海 图 在 开 始 航 行 时 有 30 ％ 的 几 率 不 被 消 耗
+=== END VOYAGE BORDER ===
+=== VOYAGE BORDER 11 ===
+相 邻 区 域 包 a 2 个 额 外 宝 藏
+=== END VOYAGE BORDER ===

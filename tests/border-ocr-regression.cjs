@@ -1,4 +1,4 @@
-﻿const assert = require('node:assert/strict')
+﻿﻿const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const ts = require('typescript')
 
@@ -257,3 +257,16 @@ assert.match(helperPs, /VoyageOcrImage\]::Normalize/, 'contrast-stretch rescue m
 assert.match(helperPs, /\$PointSpec/, 'points param must not collide with the local $points variable')
 
 console.log('Border OCR regression: 64/64 current tooltips and 12/12 aliases matched; collector is input-free')
+
+// Same original PNG, two uncorrected engines. Expected IDs were independently
+// transcribed from the user's screenshot, never generated from OCR output.
+const sameImage = require('./../samples/border-ocr/issue-66/expected.json')
+const oldImageReplay = parseBorderOcrPayload(fs.readFileSync(require.resolve('../samples/border-ocr/issue-66/windows-ocr.txt'), 'utf8'))
+const newImageReplay = parseBorderOcrPayload(fs.readFileSync(require.resolve('../samples/border-ocr/issue-66/rapidocr.txt'), 'utf8'))
+assert.equal(oldImageReplay.matches.length, 5, 'preserve historical failures, do not silently repair their characters')
+assert.equal(oldImageReplay.misses.length, 7)
+assert.deepEqual(newImageReplay.matches.map(({ index, id }) => ({ index, id })), sameImage.slots.map(({ index, id }) => ({ index, id })))
+assert.equal(newImageReplay.misses.length, 0)
+assert.match(helperPs, /RapidPython/, 'Chinese OCR must use the installed pinned local runtime')
+assert.match(helperPs, /--image \$WorkPng --points \$PointSpec --output \$OutputPath/, 'the original screenshot and coordinate protocol must reach the local helper')
+console.log('Issue #66 same-image replay: Windows OCR 5/12 matches, RapidOCR 12/12 exact slot matches; Windows candidate installation remains separate')

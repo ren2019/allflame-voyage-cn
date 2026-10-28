@@ -27,3 +27,7 @@ Thumbs.db
 coverage/
 .local-site-*/
 .private/
+
+# Local Python OCR replay bytecode
+__pycache__/
+*.pyc
