@@ -393,6 +393,7 @@ export function Library(props: Props) {
               key={c.uid}
               data-chart-uid={c.uid}
               data-import-kind={feedbackMap.get(c.uid)}
+              title={c.pendingDeletion ? '待删除：已排除求解，可在编辑中取消' : undefined}
               className={`chart-card ${props.selected === c.uid ? 'selected' : ''} ${onBoard.has(c.uid) ? 'on-board' : ''}`}
               onClick={() => props.onSelect(c.uid)}
             >
