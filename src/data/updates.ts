@@ -12,6 +12,10 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    date: '2026-10-28', tag: 'new', title: '速刷与神圣边界打法编号',
+    detail: '打法顺序新增琪莎拉 Boss、保险箱与漂流瓶、两种神圣边界及点金速刷目标；只标实际生效区域，开箱前洗练与漂流瓶互动分别提示，目标不足不凑号。编号沿实际连接排序，计分停用不隐藏真实目标。',
+  },
+  {
     date: '2026-10-28', tag: 'reworked', title: '国服边界改用本地中文识别助手',
     detail: '国服采集候选 v0.2.1 接入固定版本 RapidOCR 与中文模型，F8 截图后在本机读取十二槽，保留未匹配时的手动补选。网页现兼容真实客户端“一个额外圣甲虫”；同图回放与 Windows 安装、游戏现场验收分开记录。',
   },
