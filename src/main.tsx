@@ -11,7 +11,11 @@ window.addEventListener('storage', (event) => {
 })
 
 const root = ReactDOM.createRoot(document.getElementById('root')!)
-if (new URLSearchParams(location.search).get('view') === 'calibration') {
+if (import.meta.env.DEV && new URLSearchParams(location.search).get('prototype') === 'strategy') {
+  import('./components/StrategyGuidancePage.prototype').then(({ StrategyGuidancePrototype }) =>
+    root.render(<React.StrictMode><StrategyGuidancePrototype /></React.StrictMode>),
+  )
+} else if (new URLSearchParams(location.search).get('view') === 'calibration') {
   import('./components/CalibrationPage').then(({ CalibrationPage }) =>
     root.render(<React.StrictMode><CalibrationPage /></React.StrictMode>),
   )
