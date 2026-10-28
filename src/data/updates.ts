@@ -12,6 +12,10 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    date: '2026-10-28', tag: 'reworked', title: '仅突出特殊目的地',
+    detail: '九宫格悬浮卡片只为特殊目的地显示高亮提示；深渊平原、海底山脊和海底林地等普通目的地不再显示该行。',
+  },
+  {
     date: '2026-10-28', tag: 'reworked', title: '精简海图库存卡片操作',
     detail: '移除库存网格和列表卡片常驻的待删除按钮，标记与取消操作收进列表编辑区域。九宫格标记和库存统一清理入口保留。',
   },

@@ -103,7 +103,7 @@ function Tile({
   const tt = tooltipProps({
     title: chart.name,
     lines: [
-      ...(chart.areaType ? [{ text: `目的地：${destinationLabel(chart.areaType)}`, cls: 'destination-orange' }] : []),
+      ...(chart.areaType && !['abyssal-plain', 'seafloor-ridges', 'undersea-groves'].includes(chart.areaType) ? [{ text: `目的地：${destinationLabel(chart.areaType)}`, cls: 'destination-orange' }] : []),
       { text: `区域等级：${chart.level}${chart.shape ? ` · ${chartShapeLabel(chart.shape)}` : ''}`, cls: 'muted' },
       ...(chart.rewards ?? []).map((e) => ({
         text: `+${e.percent}% ${STAT_LABELS[e.stat]}`,
