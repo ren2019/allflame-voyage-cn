@@ -86,6 +86,13 @@ describe('mainland border text matching through collector payloads', () => {
     expect(parseBorderOcrPayload(block(text)).matches[0]?.id).toBe('b-quantconn-2')
   })
 
+  it.each(['1。6', '1、6', '1：6', '1 。；： 6', '１。６'])('does not merge digits across OCR punctuation: %s', (value) => {
+    const text = `相邻区域的怪物群规模提高 ${value}%`
+    const result = parseBorderOcrPayload(block(text))
+    expect(result.matches).toEqual([])
+    expect(result.misses).toEqual([{ index: 0, raw: text }])
+  })
+
   it.each([
     '相邻区域的怪物群规模提高 17%',
     '相邻区域的怪物群规模提高 1.6%',
