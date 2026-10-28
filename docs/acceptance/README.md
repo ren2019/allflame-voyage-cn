@@ -2,6 +2,12 @@
 
 日常验证命令见 [贡献指南](../../CONTRIBUTING.md)。逻辑、整页浏览器、部署检查、Windows 原生剪贴板和游戏现场分别记录，彼此不能替代。
 
+## 国服采集器候选
+
+- [玩家十五项验收记录](collector-player-checklist.md)：Windows、授权、真实游戏、失败恢复与新手结果初始全部未执行。
+- [候选核对与证据边界](collector-candidate.md)：复用现有构建与公开 CLI，最终摘要以实际候选清单/外部交付报告为准。
+- [采集三路径与失败恢复](collector-flow.md)：截图、读取、输出与网页匹配的具体预期。
+
 ## 主分支保留的文件
 
 - [coverage.json](coverage.json)：原国服适配合同，包含七类故事、27 组场景、必要样本及历史核心文件指纹。
