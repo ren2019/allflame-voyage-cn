@@ -1,7 +1,6 @@
 ﻿#Requires AutoHotkey v2.0
 #SingleInstance Force
 Persistent
-CoordMode "ToolTip", "Screen"
 
 ; =====================================================================
 ;  Allflame Voyage - chart & border collector  (AutoHotkey v2)
@@ -15,7 +14,7 @@ CoordMode "ToolTip", "Screen"
 ;
 ;  F7 - chart copy mode
 ;   1. Press F7 - copy mode ON, a counter appears.
-;   2. In PoE, hover each chart and press Ctrl+C yourself (mainland: Ctrl+Alt+C). The counter
+;   2. In PoE, hover each chart and press Ctrl+C yourself (Ctrl+Alt+C for advanced text). The counter
 ;      ticks up per chart (non-charts and double-copies are ignored).
 ;   3. Press F7 again - everything collected is on the clipboard.
 ;
@@ -35,7 +34,7 @@ CoordMode "ToolTip", "Screen"
 ;  or its hotkeys won't register while the game window is focused.
 ; =====================================================================
 
-CollectorVersion := "2026-10-28-cn"
+CollectorVersion := "2026-10-28-cn-readable"
 
 Collecting := false
 Collected := []
@@ -113,11 +112,33 @@ ShowCounter() {
     if Collecting {
         text := "📋 采集中：" Collected.Length " 张海图"
             . (BorderCount ? "；已读取 " BorderCount "/12 处边界文字" : "")
-            . "`n国服 Ctrl+Alt+C 高级复制；F8 读取边界；F7 结束。"
+            . "`nCtrl+C 复制海图；Ctrl+Alt+C 高级复制。`nF8 读取边界；F7 结束。"
     }
     if (StatusMessage != "")
         text .= (text = "" ? "" : "`n") StatusMessage
-    ToolTip text, A_ScreenWidth // 2 - 220, 40
+    ShowCollectorStatus(text)
+}
+
+; A larger status panel keeps the original counter/error role without taking
+; focus or intercepting the player's mouse. Recreate the text control so its
+; height follows wrapped messages instead of clipping longer OCR errors.
+ShowCollectorStatus(text) {
+    static panel := 0
+    if IsObject(panel)
+        panel.Destroy()
+    panel := 0
+    if (text = "")
+        return
+    panel := Gui("+AlwaysOnTop -Caption +ToolWindow +E0x08000020", "航程采集状态")
+    panel.BackColor := "202630"
+    panel.MarginX := 20
+    panel.MarginY := 14
+    panel.SetFont("s16 cFFFFFF", "Microsoft YaHei UI")
+    width := Min(640, Floor(A_ScreenWidth * 96 / A_ScreenDPI) - 48)
+    panel.AddText("w" width, text)
+    ; A layered window plus WS_EX_TRANSPARENT passes mouse events through.
+    WinSetTransparent 255, panel.Hwnd
+    panel.Show("NoActivate AutoSize xCenter y40")
 }
 
 OnClipChanged(dataType) {
@@ -355,7 +376,7 @@ A_TrayMenu.Insert("2&", "读取边界 (F8)", (*) => RunBorderScan())
 A_TrayMenu.Insert("3&", "切换提示音 (Shift+F7)", ToggleMute)
 A_TrayMenu.Default := "开启或结束海图采集 (F7)"
 A_IconTip := "航程采集器：F7 海图，F8 边界"
-ShowStatus("航程采集器已就绪：F7 采集海图，F8 读取边界。`n国服请手动 Ctrl+Alt+C 高级复制；脚本不向游戏发送输入。", 6000)
+ShowStatus("航程采集器已就绪：F7 采集海图，F8 读取边界。`n请手动 Ctrl+C 复制海图，或 Ctrl+Alt+C 高级复制；脚本不向游戏发送输入。", 6000)
 
 ; ---------------------------------------------------------------------
 ; The border-reading PowerShell helper. Runs Windows OCR locally on a
