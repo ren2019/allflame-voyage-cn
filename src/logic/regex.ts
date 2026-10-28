@@ -8,13 +8,13 @@
 import { VOYAGE_MODS, voyageModById } from '../data/mods'
 import { voyageRewardKey } from './rewards'
 import type { ChartData, VoyageModDef, Weights } from '../types'
-import { TEXT_LIBRARY } from '../data/textLibrary'
+import { TEXT_LIBRARY, mainlandDisplayText } from '../data/textLibrary'
 
 const HANGUL_RE = /[\uac00-\ud7a3]/
 const HAN_RE = /\p{Script=Han}/u
 const mainlandImplicits = new Map(TEXT_LIBRARY.records
   .filter((record) => record.kind === 'chart-implicit' && record.cnText && ['confirmed', 'source-only'].includes(record.status))
-  .map((record) => [record.internalId, record.cnText!]))
+  .map((record) => [record.internalId, mainlandDisplayText(record.cnText!)]))
 
 /**
  * Build the search text used to find one exact chart in the in-game inventory.
@@ -32,7 +32,7 @@ export function buildSingleChartSearch(chart: ChartData): string {
       .map((mod) => chinese ? mainlandImplicits.get(mod!.id) ?? mod!.text : mod!.text)[0] ??
     ''
   const level = `${HANGUL_RE.test(sourceText) ? '지역 레벨' : chinese ? '区域等级' : 'Level'} ${chart.level}`
-  return [chart.name, implicit, level].filter(Boolean).join(' ')
+  return [chart.name, mainlandDisplayText(implicit), level].filter(Boolean).join(' ')
 }
 
 /**

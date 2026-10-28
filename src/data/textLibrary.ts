@@ -5,6 +5,9 @@ import library from '../../samples/text-library/library.json' with { type: 'json
 // the chart-implicit matcher.
 export const TEXT_LIBRARY = library
 
+/** User-confirmed mainland display name (2026-10-28); keep acquired sources verbatim. */
+export const mainlandDisplayText = (text: string): string => text.replace(/瓶中信/g, '漂流瓶')
+
 const COUNT_DIGITS: Record<string, string> = {
   一: '1', 二: '2', 两: '2', 三: '3', 四: '4', 五: '5', 六: '6', 七: '7', 八: '8', 九: '9',
 }
@@ -12,6 +15,7 @@ const COUNT_DIGITS: Record<string, string> = {
 function normalizeImplicit(text: string): string {
   return text
     .normalize('NFKC')
+    .replace(/漂流瓶/g, '瓶中信')
     .replace(/\s+/g, '')
     .replace(/[—–]/g, '-')
     .replace(/-数值不可调整$/u, '')

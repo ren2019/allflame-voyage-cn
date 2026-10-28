@@ -92,3 +92,21 @@ test('#59 两档边界均为优先档，50%高于30%，未知边界不记零分'
   await expect(entries.nth(1)).toContainText('8/10 · 优先')
   await expect(entries.nth(2)).toContainText('暂无规则')
 })
+
+
+test('琪莎拉整程填充优先数量硫磺，不套用点金布局并拒绝禁止掉落图', async ({ page }) => {
+  await openEmptyApp(page)
+  const s = inventory()
+  s.pool.push({ ...s.pool[1], uid: 'good-fill', modIds: ['cm-quant-45', 'cm-sulph-45'], rewards: [{ stat: 'quantity', percent: 100 }, { stat: 'sulphur', percent: 100 }] })
+  s.pool.push({ ...s.pool[1], uid: 'no-equipment', modIds: ['voy-noequip', 'cm-quant-45', 'cm-sulph-45'], rewards: [{ stat: 'quantity', percent: 999 }] })
+  s.borders[0] = 'b-keep-2'
+  await loadState(page, s)
+  await expect(page.getByLabel('策略布局', { exact: true })).toHaveCount(0)
+  await expect(page.getByLabel('策略玩法说明')).toContainText('击败Boss后快速完成其余区域')
+  await page.locator('.solve-big').click()
+  await expect(page.locator('.solve-result:not(.invalid)').first()).toBeVisible({ timeout: 30000 })
+  const after = await exportState(page)
+  expect(after.board[0]?.chartUid).toBe('public-0')
+  expect(after.board.some((p) => p?.chartUid === 'good-fill')).toBe(true)
+  expect(after.board.some((p) => p?.chartUid === 'no-equipment')).toBe(false)
+})

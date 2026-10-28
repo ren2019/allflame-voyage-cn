@@ -50,7 +50,7 @@ describe('Korean clipboard aliases feed strategy readiness', () => {
     const html = renderStrategy('milky-speedrun', [diviner])
 
     expect(html).toContain('class="strat-ready"')
-    expect(html).toContain('1/1× 神圣秘宝／侦探保险箱／瓶中信海图（中心）')
+    expect(html).toContain('1/1× 神圣秘宝／侦探保险箱／漂流瓶海图（中心）')
   })
 
   it('counts the observed Korean Message chart for Speedrun', () => {
@@ -63,7 +63,7 @@ describe('Korean clipboard aliases feed strategy readiness', () => {
     const html = renderStrategy('milky-speedrun', [message])
 
     expect(html).toContain('class="strat-ready"')
-    expect(html).toContain('1/1× 神圣秘宝／侦探保险箱／瓶中信海图（中心）')
+    expect(html).toContain('1/1× 神圣秘宝／侦探保险箱／漂流瓶海图（中心）')
   })
 
   it('centre pick narrows Speedrun readiness to the chosen family (issue #49)', () => {
@@ -78,7 +78,7 @@ describe('Korean clipboard aliases feed strategy readiness', () => {
     const msgHtml = renderStrategy('milky-speedrun', [diviner], { 'milky-speedrun': 'msg' })
     expect(msgHtml).toContain('中心海图')
     expect(msgHtml).toContain('class="strat-notready"')
-    expect(msgHtml).toContain('1× 瓶中信海图（中心）')
+    expect(msgHtml).toContain('1× 漂流瓶海图（中心）')
   })
 
   it('subtracts Korean Wisp and Golden Lantern charts from Magic Ethereal shortages', () => {
