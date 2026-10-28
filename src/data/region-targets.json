@@ -300,7 +300,7 @@
     },
     {
       "id": "message-bottle",
-      "label": "瓶中信",
+      "label": "漂流瓶",
       "basePriority": 75,
       "strategyOverrides": {
         "alc-and-go": 75,

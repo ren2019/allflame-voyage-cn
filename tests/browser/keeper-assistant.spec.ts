@@ -2,7 +2,7 @@ import { expect, test } from './offline'
 import { clipboardWrites, exportState, installClipboardRecorder, openEmptyApp } from './acceptance-helpers'
 
 const meatfish = '"巨型海星|众神词缀|4000.*鬼灵|海之柱|黄金灯笼|被附身|无法掉落|稀有怪物死亡时.*分裂"'
-const speedrun = '"瓶中信|神圣的秘宝|侦探的保险箱|物品数量.*(1[1-9].|[2-9]..)%"'
+const speedrun = '"漂流瓶|神圣的秘宝|侦探的保险箱|物品数量.*(1[1-9].|[2-9]..)%"'
 
 test('无库存可独立多选留图策略，每策略完整一串，操作不改变业务状态', async ({ page }) => {
   await installClipboardRecorder(page)

@@ -124,7 +124,7 @@ export const MEATFISH_FUEL = ['voy-fracture'] as const
 
 /** Milky's master keeper regex - every mod worth saving, across all strats */
 export const ALL_GOOD_MODS_REGEX =
-  '"至少为魔法|无法掉落|被附身|分裂|瓶中信|神圣的秘宝|奥术师|侦探|巨型海星|众神词缀|腰带|黄金灯笼|4000.*鬼灵|保险箱|所有航行区域的稀有怪物数量|所有航行区域中找到的亡者硫磺"'
+  '"至少为魔法|无法掉落|被附身|分裂|漂流瓶|神圣的秘宝|奥术师|侦探|巨型海星|众神词缀|腰带|黄金灯笼|4000.*鬼灵|保险箱|所有航行区域的稀有怪物数量|所有航行区域中找到的亡者硫磺"'
 
 const CENTER = [4]
 const EDGES = [1, 3, 5, 7]
@@ -248,6 +248,8 @@ const ALC_GO_SNAKE: Edges[] = [
   [T, F, F, T], // 8 corner (N to 5, W to 7)
 ]
 
+const ALC_FILL_WEIGHTS: Weights = { 'self:quant': 2, 'self:sulph': 2, 'voyage:sulph': 2, 'voyage:quant': 2 }
+
 export const STRATEGIES: StrategyDef[] = [
   {
     id: 'alc-and-go',
@@ -260,12 +262,7 @@ export const STRATEGIES: StrategyDef[] = [
       "无需追求每格效果，主要收集零散掉落、硫磺与随机遭遇。",
       "点金后出发，放置所有灯笼、处理沿途互动，然后离开；在完整策略航程之间循环速刷。",
     ],
-    weights: {
-      'self:quant': 2,
-      'self:sulph': 2,
-      'voyage:sulph': 2,
-      'voyage:quant': 2,
-    },
+    weights: { ...ALC_FILL_WEIGHTS },
     rules: [],
     layout: ALC_GO_LAYOUT,
     layouts: [
@@ -290,10 +287,11 @@ export const STRATEGIES: StrategyDef[] = [
     tagline: '恰好带一张琪莎拉，优先保图，避开装备转金币；不消耗锚地。',
     source: { label: '玩家实测', url: 'https://www.reddit.com/r/pathofexile/comments/1vteizn/i_ran_100_kisharas_rest_voyages_so_you_dont_have/' },
     guide: ['只带一张琪莎拉安息处，优先接触50%保图边界，其次30%；未找到合法保图摆法时回退左下起点或其他合法位置。',
-      'Boss 所在区域不得受到装备转金币影响；金币数量提高不受此限制。',
+      'Boss 所在区域不得受到装备转金币影响，全航程禁止装备、药剂或萃取物掉落的海图也不可使用；金币数量提高不受此限制。',
+      '击败Boss后快速完成其余区域；八张填充图沿用点金速刷的本区域与全航程数量、硫磺评分，不套用三线或S形布局，也不额外偏重相邻增益。',
       '保留其他合法候选供手动选择；逐来源显示保图概率，不合并推算。其余八张不使用锚地，并遵守其他策略材料预留。',
       '社区实测不代表国服掉落公式；首次任务解锁及游戏内结果请现场核对。'],
-    weights: { 'voyage:sulph': 1 },
+    weights: { ...ALC_FILL_WEIGHTS },
     rules: [{ cells: [6], areaTypes: ['kisharas-rest'], bonus: 1000 }],
     destinationCounts: [{ areaType: 'kisharas-rest', count: 1 }],
     requirements: [{ areaTypes: ['kisharas-rest'], count: 1, label: '琪莎拉安息处海图' }],
@@ -344,7 +342,7 @@ export const STRATEGIES: StrategyDef[] = [
     tagline: "Milky 的过渡刷法：消耗备用海图，开启保险箱，快速完成航程。",
     source: { label: "Milkybk_：航海加强与策略讲解", url: 'https://www.youtube.com/watch?v=gVKQhYxeavk' },
     guide: [
-      "中心只放一张侦探保险箱海图；这是首选，原攻略称每航程可获得价值数颗神圣石的圣甲虫。神圣秘宝或瓶中信海图是稳定的替代材料。",
+      "中心只放一张侦探保险箱海图；这是首选，原攻略称每航程可获得价值数颗神圣石的圣甲虫。神圣秘宝或漂流瓶海图是稳定的替代材料。",
       "先将海图洗到 110% 以上物品数量再测绘；测绘后无法洗练，数量会影响保险箱奖励。",
       "将物品数量最高的海图放在四个中边位置。",
       "其余位置使用其他策略不需要的备用海图，角落主要用于对齐连接。",
@@ -379,7 +377,7 @@ export const STRATEGIES: StrategyDef[] = [
       { nearBorderId: 'b-octoboss', rewardStat: { stat: 'sulphur', per: 8 }, bonus: 0 },
     ],
     requirements: [
-      { modIds: SPEEDRUN_CENTER_MODS, count: 1, label: "神圣秘宝／侦探保险箱／瓶中信海图（中心）" },
+      { modIds: SPEEDRUN_CENTER_MODS, count: 1, label: "神圣秘宝／侦探保险箱／漂流瓶海图（中心）" },
     ],
     // which family may take the centre (issue #49: e.g. spend Messages,
     // save Diviner's) - the choice reshapes rules + readiness via
@@ -387,11 +385,11 @@ export const STRATEGIES: StrategyDef[] = [
     centerOptions: [
       { id: 'any', label: "现有最佳材料", modIds: [...SPEEDRUN_CENTER_MODS] },
       { id: 'opbox', label: "仅侦探保险箱", modIds: ['adj-opbox-1', 'adj-opbox-2'] },
-      { id: 'msg', label: "仅瓶中信", modIds: ['adj-msg-1', 'adj-msg-2'] },
+      { id: 'msg', label: "仅漂流瓶", modIds: ['adj-msg-1', 'adj-msg-2'] },
       { id: 'divbox', label: "仅神圣秘宝", modIds: ['adj-divbox-1', 'adj-divbox-2'] },
     ],
     waitHint: "先手动规划，等待中心材料掉落。",
-    searchRegex: '"瓶中信|神圣的秘宝|侦探的保险箱"',
+    searchRegex: '"漂流瓶|神圣的秘宝|侦探的保险箱"',
   },
   {
     id: 'milky-meatfish',

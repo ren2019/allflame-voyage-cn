@@ -40,6 +40,10 @@ export function selectStrategySolvePool(
       heldFor.add('锚地赐福（全部锚地保护）')
       return false
     }
+    if (strategy?.id === 'kishara-boss-rush' && chart.modIds.includes('voy-noequip')) {
+      heldFor.add('Boss装备掉落安全限制')
+      return false
+    }
     if (lockedUids.has(chart.uid)) return true
     const owner = bank.get(chart.uid)
     if (!owner || owner.strategyId === strategy?.id) return true

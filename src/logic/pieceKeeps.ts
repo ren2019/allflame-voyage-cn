@@ -119,7 +119,7 @@ function buildPieceTypes(): PieceType[] {
         strategyId: s.id,
         strategyName: s.name,
         reservationId: null,
-        label: '中心海图（神圣秘宝／侦探保险箱／瓶中信）',
+        label: '中心海图（神圣秘宝／侦探保险箱／漂流瓶）',
         modIds: centres.modIds,
         recommended: 2,
         defaultKeep: 2,
