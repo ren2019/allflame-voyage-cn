@@ -72,7 +72,7 @@ describe('offline acquired corpus at the parser boundary', () => {
     expect(new Set(batch.map((chart) => chart.uid)).size).toBe(2)
     const initial = dedupeNewCharts([], batch)
     expect(initial.fresh).toHaveLength(2)
-    expect(dedupeNewCharts(initial.fresh, parseChartText(`${first}\n${first}`).charts)).toEqual({ fresh: [], skipped: 2 })
+    expect(dedupeNewCharts(initial.fresh, parseChartText(`${first}\n${first}`).charts)).toMatchObject({ fresh: [], skipped: 2 })
     const noRawText = batch.map(({ rawText: _raw, ...chart }) => chart)
     expect(dedupeNewCharts([noRawText[0]], noRawText).fresh).toHaveLength(2)
   })

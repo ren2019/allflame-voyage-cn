@@ -231,3 +231,14 @@ input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px
 .strategy-recommendation strong { color: var(--accent); }
 .strategy-recommendation button { max-width: 100%; white-space: normal; }
 .recommendation-missing { color: var(--bad); }
+
+.poe-tt-line.destination-orange { color: #f5a541; overflow-wrap: anywhere; }
+[data-theme="light"] .poe-tt-line.destination-orange { color: #ffc16b; }
+.pending-badge, .pending-summary { color: var(--text); background: #9e5a232b; border: 1px solid #b27736; padding: 3px; }
+
+.finish-voyage.copy-complete-primary { background: #a74f13; color: #fff; border: 2px solid #f5a541; font-size: 1.1rem; font-weight: 700; }
+.copy-complete-note { flex-basis: 100%; color: var(--text); }
+
+[data-import-kind] { outline: 2px solid #db9a35; outline-offset: -2px; }
+.import-hit-label { background: #75430d; color: #fff; padding: 1px 4px; font-size: 11px; }
+.import-feedback { padding: 6px; border: 1px solid #b27736; }

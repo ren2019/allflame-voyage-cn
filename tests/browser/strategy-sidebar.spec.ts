@@ -5,19 +5,20 @@ import type { AppState } from '../../src/logic/storage'
 
 const inventory: AppState = JSON.parse(readFileSync(new URL('../../src/logic/__fixtures__/real-inventory-layout.json', import.meta.url), 'utf8'))
 const choices = [
+  ['琪莎拉 Boss 速刷', 'kishara-boss-rush'],
   ['点金速刷', 'alc-and-go'], ['锚地赐福', 'anchorfield-fishing'],
   ['速刷保险箱', 'milky-speedrun'], ['稀有怪传说装', 'milky-meatfish'],
   ['魔法怪流', 'milky-ethereal'], ['稀有怪神圣雨', 'divine-border-rares'],
   ['神圣保险箱', 'cutedog-divine-boxes'], ['无策略（手动）', null],
 ] as const
 
-test('右栏集中选择七策略和手动，玩法同步且导出仅改变所选策略', async ({ page }) => {
+test('右栏集中选择八策略和手动，玩法同步且导出仅改变所选策略', async ({ page }) => {
   await openEmptyApp(page)
   await loadState(page, inventory)
   const before = await exportState(page)
   const sidebar = page.locator('.solver-col')
   const options = sidebar.getByRole('group', { name: '当前策略', exact: true })
-  await expect(options.getByRole('button')).toHaveCount(8)
+  await expect(options.getByRole('button')).toHaveCount(9)
   await expect(page.getByRole('combobox', { name: '当前策略', exact: true })).toHaveCount(0)
   for (const [name, id] of choices) {
     const button = options.getByRole('button', { name, exact: true })

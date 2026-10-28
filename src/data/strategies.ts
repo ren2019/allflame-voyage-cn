@@ -100,6 +100,7 @@ export interface StrategyDef {
   /** hard caps on the solve pool: only the best `max` matching charts are
    *  offered to the solver (e.g. Anchorfield Fishing boards exactly ONE
    *  Anchorfield however many the library holds - issue #49) */
+  destinationCounts?: { areaType: ChartAreaType; count: number }[]
   limits?: { modIds?: string[]; areaTypes?: ChartAreaType[]; max: number }[]
   /** what to do instead while pieces are missing */
   waitHint?: string
@@ -285,6 +286,21 @@ export const STRATEGIES: StrategyDef[] = [
     reservationGroups: [divineReservation(true), MEATFISH_RESERVATION, ETHEREAL_RESERVATION],
   },
   {
+    id: 'kishara-boss-rush', name: '琪莎拉 Boss 速刷', badge: '新增',
+    tagline: '恰好带一张琪莎拉，优先左下，避开装备转金币。',
+    source: { label: '玩家实测', url: 'https://www.reddit.com/r/pathofexile/comments/1vteizn/i_ran_100_kisharas_rest_voyages_so_you_dont_have/' },
+    guide: ['只带一张琪莎拉安息处，默认优先左下起点；位置服从连接和锁定。',
+      'Boss 所在区域不得受到装备转金币影响；金币数量提高不受此限制。',
+      '有合法保图边界时可主动选择保图备选；逐来源显示概率，不合并推算。',
+      '社区实测不代表国服掉落公式；首次任务解锁及游戏内结果请现场核对。'],
+    weights: { 'voyage:sulph': 1 },
+    rules: [{ cells: [6], areaTypes: ['kisharas-rest'], bonus: 1000 }],
+    destinationCounts: [{ areaType: 'kisharas-rest', count: 1 }],
+    requirements: [{ areaTypes: ['kisharas-rest'], count: 1, label: '琪莎拉安息处海图' }],
+    limits: [{ areaTypes: ['kisharas-rest'], max: 1 }],
+    waitHint: '缺少琪莎拉海图或合法位置时，请保留库存等待。',
+  },
+  {
     id: 'anchorfield-fishing',
     name: "锚地赐福",
     badge: "新增",
@@ -317,6 +333,7 @@ export const STRATEGIES: StrategyDef[] = [
     // "One is all you need": however many Anchorfields the library holds,
     // only the single best one is offered to the solver (issue #49 - the
     // any-cell bonus used to stack every Anchorfield onto the board)
+    destinationCounts: [{ areaType: 'anchorfield', count: 1 }],
     limits: [{ areaTypes: ['anchorfield'], max: 1 }],
     waitHint: "先用点金速刷或速刷保险箱，等待锚地海图掉落，任意稀有度均可。",
     searchRegex: '"锚地|物品数量.*(1[2-9].|[2-9]..)%"',

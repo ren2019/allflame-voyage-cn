@@ -9,7 +9,7 @@ import type { ChartData } from '../types'
 type StrategyReservations = {
   /** strategy id - a banked chart is spendable only by its owning strategy */
   id?: string
-} & Pick<StrategyDef, 'allowRareImplicits' | 'allowFractureCharts' | 'reservationGroups' | 'limits'>
+} & Pick<StrategyDef, 'allowRareImplicits' | 'allowFractureCharts' | 'reservationGroups' | 'limits' | 'destinationCounts'>
 
 /**
  * The solve pool under the "keep X of each piece type" model: the bank holds
@@ -29,6 +29,11 @@ export function selectStrategySolvePool(
 
   const heldFor = new Set<string>()
   let solvePool = pool.filter((chart) => {
+    if (chart.pendingDeletion) { heldFor.add('待删除清理'); return false }
+    if (chart.areaType === 'kisharas-rest' && strategy?.id !== 'kishara-boss-rush') {
+      heldFor.add('琪莎拉 Boss 速刷（全部保护）')
+      return false
+    }
     if (lockedUids.has(chart.uid)) return true
     const owner = bank.get(chart.uid)
     if (!owner || owner.strategyId === strategy?.id) return true
@@ -44,6 +49,9 @@ export function selectStrategySolvePool(
   // reach the solver. Manually locked charts always stay and count toward
   // the cap.
   for (const limit of strategy?.limits ?? []) {
+    // Exact output constraints must retain alternative shapes/instances for
+    // feasibility; selecting the highest reward instance here can erase a solution.
+    if (limit.areaTypes?.some((area) => strategy?.destinationCounts?.some((r) => r.areaType === area))) continue
     const matches = (c: ChartData) =>
       (limit.modIds?.some((id) => c.modIds.includes(id)) ?? false) ||
       (limit.areaTypes && c.areaType ? limit.areaTypes.includes(c.areaType) : false)

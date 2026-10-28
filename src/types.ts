@@ -182,6 +182,7 @@ export interface ChartData {
   /** unparsed mod lines kept from import so nothing is silently lost */
   rawText?: string
   /** marked to survive "Finish Voyage" (won't be consumed) */
+  pendingDeletion?: boolean
   preserved?: boolean
 }
 

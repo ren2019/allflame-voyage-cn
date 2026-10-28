@@ -21,7 +21,12 @@ function mechanicFields(value: unknown): unknown {
 
 describe('seven fixed strategy inventories and independent feasible witnesses', () => {
   it('keeps every original strategy ID, weight, rule, layout, cap and material count', () => {
-    expect(STRATEGIES.map(mechanicFields)).toEqual(upstream.strategies)
+    // Preserve the upstream snapshot while testing the authorized local
+    // hard constraint separately from unchanged original mechanics.
+    const original = STRATEGIES.filter((s) => s.id !== 'kishara-boss-rush')
+    expect(original.map(({ destinationCounts: _localConstraint, ...s }) => mechanicFields(s))).toEqual(upstream.strategies)
+    expect(strategyById.get('anchorfield-fishing')?.destinationCounts).toEqual([{ areaType: 'anchorfield', count: 1 }])
+    expect(strategyById.get('kishara-boss-rush')?.destinationCounts).toEqual([{ areaType: 'kisharas-rest', count: 1 }])
     expect(DEFAULT_WEIGHTS).toEqual(fixture('strategy-alc').weights)
   })
 

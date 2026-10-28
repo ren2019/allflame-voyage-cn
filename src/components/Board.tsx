@@ -11,7 +11,7 @@ import { buildSingleChartSearch } from '../logic/regex'
 import type { Board, Borders, ChartData, Placement } from '../types'
 import { START_CELL, STAT_LABELS, STAT_SHORT } from '../types'
 import { tooltipProps } from './Tooltip'
-import { chartShapeLabel, voyageModText, voyageModShort, SCOPE_LABELS } from '../data/localization'
+import { destinationLabel, chartShapeLabel, voyageModText, voyageModShort, SCOPE_LABELS } from '../data/localization'
 
 interface Props {
   board: Board
@@ -27,11 +27,14 @@ interface Props {
   placingChart: ChartData | null
   onCellClick: (i: number) => void
   onRemove: (i: number) => void
+  onToggleDeletion: (uid: string) => void
+  onMissing: (i: number) => void
   onRotate: (i: number) => void
   onBorderChange: (segment: number, id: string | null) => void
   onTogglePreserve: (uid: string) => void
   onFinishVoyage: () => void
   onCopySequence: () => void
+  copyComplete?: boolean
   voyageMsg: string
   /** a copy/preserve step-through is active - hide the action buttons to avoid confusion */
   sequenceActive?: boolean
@@ -54,6 +57,8 @@ function Tile({
   onRemove,
   onRotate,
   onTogglePreserve,
+  onToggleDeletion,
+  onMissing,
   region,
   cellIndex,
   onTargetDetails,
@@ -70,6 +75,8 @@ function Tile({
   onTargetDetails: () => void
   edgeStatus: EdgeStatus[]
   onClick: () => void
+  onToggleDeletion: () => void
+  onMissing: () => void
   onRemove: () => void
   onRotate: () => void
   onTogglePreserve: () => void
@@ -93,6 +100,7 @@ function Tile({
   const tt = tooltipProps({
     title: chart.name,
     lines: [
+      ...(chart.areaType ? [{ text: `目的地：${destinationLabel(chart.areaType)}`, cls: 'destination-orange' }] : []),
       { text: `区域等级：${chart.level}${chart.shape ? ` · ${chartShapeLabel(chart.shape)}` : ''}`, cls: 'muted' },
       ...(chart.rewards ?? []).map((e) => ({
         text: `+${e.percent}% ${STAT_LABELS[e.stat]}`,
@@ -155,6 +163,7 @@ function Tile({
           🔒 保留
         </span>
       )}
+      {chart.pendingDeletion && <span className="pending-badge">待删除 · 不可执行</span>}
       <div className="tile-actions">
         <button
           className={chart.preserved ? 'active' : ''}
@@ -166,6 +175,8 @@ function Tile({
         >
           {chart.preserved ? '🔒' : '🔓'}
         </button>
+        <button title={chart.pendingDeletion ? '取消待删除' : '标记待删除'} onClick={(e) => { e.stopPropagation(); onToggleDeletion() }}>{chart.pendingDeletion ? '取消标记' : '标记'}</button>
+        <button title="找不到：标记待删除并移出摆盘" onClick={(e) => { e.stopPropagation(); onMissing() }}>找不到</button>
         <button
           title="复制游戏定位文本（名称与词缀），查找此海图"
           onClick={(e) => {
@@ -187,7 +198,7 @@ function Tile({
           ⟳
         </button>
         <button
-          title="移除"
+          title="移除" aria-label="移出摆盘，保留库存"
           onClick={(e) => {
             e.stopPropagation()
             onRemove()
@@ -261,6 +272,8 @@ export function BoardView(props: Props) {
         isStart={i === START_CELL}
         edgeStatus={edgeStatusFor(i)}
         onClick={() => props.onCellClick(i)}
+        onToggleDeletion={() => p && props.onToggleDeletion(p.chartUid)}
+        onMissing={() => props.onMissing(i)}
         onRemove={() => props.onRemove(i)}
         onRotate={() => props.onRotate(i)}
         onTogglePreserve={() => p && props.onTogglePreserve(p.chartUid)}
@@ -343,6 +356,7 @@ export function BoardView(props: Props) {
       {!props.sequenceActive && props.solveSlot}
       {!props.sequenceActive && (
         <div className="voyage-finish">
+          {props.copyComplete && <p className="copy-complete-note">全部复制成功。实际航程结束后点击「完成航程」核销。</p>}
           <button
             className="copy-into-game"
             disabled={board.every((p) => !p)}
@@ -352,7 +366,7 @@ export function BoardView(props: Props) {
             📋 复制到游戏
           </button>
           <button
-            className="finish-voyage"
+            className={`finish-voyage ${props.copyComplete ? 'copy-complete-primary' : ''}`}
             disabled={board.every((p) => !p)}
             onClick={props.onFinishVoyage}
             title="核销本盘实际消耗的海图，并逐张确认锁定海图（🔒）是否存活；随后清空摆盘，开始下一航程。"

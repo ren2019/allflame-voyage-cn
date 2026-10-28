@@ -3,19 +3,20 @@ import type { Dispatch, SetStateAction } from 'react'
 import { ALL_GOOD_MODS_REGEX, RARE_IMPLICITS } from '../data/strategies'
 import { parseBorderOcrPayload } from '../logic/borderOcr'
 import { isChartClipboardText, parseChartText } from '../logic/parser'
-import { dedupeNewCharts } from '../logic/importDedupe'
+import { dedupeNewCharts, type ImportHit } from '../logic/importDedupe'
 import type { AppState } from '../logic/storage'
 import { defaultState } from '../logic/storage'
 import type { ChartData } from '../types'
 import { CompactCopyText } from './CompactCopyText'
 
 interface Props {
+  onFeedback?: (hits: ImportHit[]) => void
   onImport: (charts: ChartData[]) => void
   state: AppState
   onLoadState: Dispatch<SetStateAction<AppState>>
 }
 
-export function ImportPanel({ onImport, state, onLoadState }: Props) {
+export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
   const successfulImports = useRef(0)
@@ -34,7 +35,7 @@ export function ImportPanel({ onImport, state, onLoadState }: Props) {
 
     // Re-pasting charts that are already in the library created phantom
     // duplicates the solver then placed as "the same chart twice" (issue #46)
-    const { fresh, skipped } = dedupeNewCharts(state.pool, charts)
+    const { fresh, skipped, hits } = dedupeNewCharts(state.pool, charts)
 
     if (borderOcr.blockCount > 0) {
       // A complete importer sweep is a snapshot of all 12 current rolls.
@@ -55,6 +56,7 @@ export function ImportPanel({ onImport, state, onLoadState }: Props) {
     } else if (fresh.length > 0) {
       onImport(fresh)
     }
+    if (hits.length) onFeedback?.(hits)
     if (charts.length > 0 || borderOcr.blockCount > 0) {
       setText('')
     }
@@ -115,7 +117,7 @@ export function ImportPanel({ onImport, state, onLoadState }: Props) {
         ? `已导入 ${rares} 张稀有怪物海图，可用于神圣石策略。已在库存中锁定 🔒，保留给神圣石边界摆盘。`
         : '',
     )
-  }, [onImport, onLoadState, state.pool, text])
+  }, [onImport, onFeedback, onLoadState, state.pool, text])
 
   // Ctrl+V anywhere on the page: if the clipboard holds chart item text, import
   // it straight away (no need to focus the box). Normal pastes into fields are

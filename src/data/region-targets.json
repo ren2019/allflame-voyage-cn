@@ -1009,7 +1009,7 @@
       "basePriority": 65,
       "strategyOverrides": {
         "alc-and-go": 65,
-        "anchorfield-fishing": 45,
+        "anchorfield-fishing": 70,
         "milky-speedrun": 55,
         "milky-meatfish": 40,
         "milky-ethereal": 40,

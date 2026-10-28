@@ -1,5 +1,6 @@
+import type { ImportHit } from '../logic/importDedupe'
 import { CalibrationLink } from './CalibrationLink'
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { chartShapeLabel, destinationLabel, voyageModShort, voyageModText } from '../data/localization'
 import { VOYAGE_MODS, voyageModById } from '../data/mods'
 import type { StrategyReservationPreferences } from '../data/strategies'
@@ -12,6 +13,8 @@ import { EdgeGlyph } from './icons'
 import { tooltipProps } from './Tooltip'
 
 interface Props {
+  importFeedback?: { hits: ImportHit[] } | null
+  onCloseFeedback?: () => void
   pool: ChartData[]
   board: Board
   weights: Weights
@@ -26,6 +29,7 @@ interface Props {
   onRemove: (uid: string) => void
   onUpdate: (chart: ChartData) => void
   onClearCharts: () => void
+  onClearPending: () => void
   /** open the guided "save charts for strategies" wizard */
   onOpenSaveWizard?: () => void
 }
@@ -209,8 +213,31 @@ export function Library(props: Props) {
     })
   }, [props.pool, props.weights, props.disabledMods, query, sort])
 
+  const root = useRef<HTMLDivElement>(null)
+  const [navigation, setNavigation] = useState<string | null>(null)
+  const visibleHits = [...new Set((props.importFeedback?.hits ?? []).map((h) => h.uid))]
+    .filter((uid) => visible.some((c) => c.uid === uid))
+  const hiddenHits = new Set((props.importFeedback?.hits ?? []).map((h) => h.uid)).size - visibleHits.length
+  const feedbackMap = new Map(props.importFeedback?.hits.map((h) => [h.uid, h.kind]))
+  const locate = (uid: string) => {
+    const node = [...(root.current?.querySelectorAll<HTMLElement>('[data-chart-uid]') ?? [])].find((el) => el.dataset.chartUid === uid)
+    if (!node || !visible.some((c) => c.uid === uid)) return
+    const container = node.parentElement!
+    const box = node.getBoundingClientRect(), viewport = container.getBoundingClientRect()
+    if (box.top < viewport.top || box.bottom > viewport.bottom) container.scrollTop += box.top - viewport.top
+    setNavigation(uid)
+  }
+  useEffect(() => {
+    // Synchronous post-render positioning has no stale animation frame to
+    // override a later import, filter change or deliberate user scroll.
+    setNavigation(null)
+    if (visibleHits[0]) locate(visibleHits[0])
+    // Auto-location belongs only to the import event, never filter/view edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.importFeedback])
+
   return (
-    <div className="library">
+    <div className="library" ref={root}>
       <div className="panel-title">
         <span className="library-title">海图库存</span>{' '}
         <span className="muted">
@@ -250,6 +277,17 @@ export function Library(props: Props) {
           </button>
         </div>
       )}
+      {props.importFeedback && <div className="import-feedback" role="region" aria-label="本次导入定位">
+        本次导入：可见 {visibleHits.length} 张，筛选隐藏 {hiddenHits} 张
+        <span> {Math.max(0, visibleHits.indexOf(navigation ?? '') + 1)}/{visibleHits.length}</span>
+        <button disabled={!visibleHits.length} onClick={() => locate(visibleHits[(visibleHits.indexOf(navigation ?? '') - 1 + visibleHits.length) % visibleHits.length])}>上一张</button>
+        <button disabled={!visibleHits.length} onClick={() => locate(visibleHits[(visibleHits.indexOf(navigation ?? '') + 1) % visibleHits.length])}>下一张</button>
+        <button onClick={props.onCloseFeedback}>关闭导入高亮</button>
+      </div>}
+      {props.pool.some((c) => c.pendingDeletion) && <div className="pending-summary">
+        待删除 {props.pool.filter((c) => c.pendingDeletion).length} 张（已排除求解）
+        <button onClick={props.onClearPending}>统一删除待删除海图</button>
+      </div>}
       {props.pool.length > 0 && props.onOpenSaveWizard && (
         <div className="savefor-bar">
           <button
@@ -290,10 +328,13 @@ export function Library(props: Props) {
             return (
               <div
                 key={c.uid}
+                data-chart-uid={c.uid}
+                data-import-kind={feedbackMap.get(c.uid)}
                 className={`chart-sq ${props.selected === c.uid ? 'selected' : ''} ${onBoard.has(c.uid) ? 'on-board' : ''} ${mod ? `sscope-${mod.scope}` : ''}`}
                 onClick={() => props.onSelect(c.uid)}
                 {...tooltipProps({ title: c.name, lines })}
               >
+                {feedbackMap.has(c.uid) && <span className="import-hit-label">{feedbackMap.get(c.uid)}</span>}
                 <span className="sq-head">
                   <span className="sq-shape"><EdgeGlyph edges={c.edges} size={15} /></span>
                   {lock && <button className="sq-lock" title={lock} aria-label={`查看策略预留：${lock}`}
@@ -317,6 +358,9 @@ export function Library(props: Props) {
                   <EdgeGlyph edges={c.edges} size={26} />
                 )}
                 <span className="sq-footer">
+                  <button title={c.pendingDeletion ? '取消待删除' : '标记待删除'} onClick={(e) => {
+                    e.stopPropagation(); props.onUpdate({ ...c, pendingDeletion: !c.pendingDeletion })
+                  }}>{c.pendingDeletion ? '取消待删除' : '待删除'}</button>
                   <span className="sq-lvl" title={`区域等级 ${c.level}`}>{c.level}</span>
                   {mod && <CalibrationLink id={mod.id} />}
                   <button
@@ -344,9 +388,12 @@ export function Library(props: Props) {
           return (
             <div
               key={c.uid}
+              data-chart-uid={c.uid}
+              data-import-kind={feedbackMap.get(c.uid)}
               className={`chart-card ${props.selected === c.uid ? 'selected' : ''} ${onBoard.has(c.uid) ? 'on-board' : ''}`}
               onClick={() => props.onSelect(c.uid)}
             >
+              {feedbackMap.has(c.uid) && <span className="import-hit-label">{feedbackMap.get(c.uid)}</span>}
               <div className="chart-card-head">
                 <EdgeGlyph edges={c.edges} />
                 <span className="chart-name">{c.name}</span>
@@ -357,6 +404,9 @@ export function Library(props: Props) {
                     onClick={event => { event.stopPropagation(); setReservationDetail(lock) }}>🔒 预留</button>
                 )}
                 {onBoard.has(c.uid) && <span className="badge">已摆入</span>}
+                <button onClick={(e) => { e.stopPropagation(); props.onUpdate({ ...c, pendingDeletion: !c.pendingDeletion }) }}>
+                  {c.pendingDeletion ? '取消待删除' : '标记待删除'}
+                </button>
                 <span className="spacer" />
                 <button
                   title="编辑"
