@@ -249,6 +249,14 @@ export default function App() {
         strategyId: 'divine-border-rares',
         missing: [],
       })
+    const keepTiers = [
+      ...(state.borders.includes('b-keep-2') ? ['50%'] : []),
+      ...(state.borders.includes('b-keep-1') ? ['30%'] : []),
+    ]
+    if (keepTiers.length) out.push({
+      piece: `边界有${keepTiers.join('、')}海图不消耗机会`,
+      strategyId: 'kishara-boss-rush', missing: [],
+    })
     for (const j of out) {
       const strat = strategyById.get(j.strategyId)
       if (!strat) continue
@@ -932,6 +940,7 @@ export default function App() {
               return <article key={j.strategyId} className="strategy-recommendation" aria-label={`推荐${strategy.name}`}>
                 <p>发现：{j.piece}</p>
                 <p>可用于：<strong>{strategy.name}</strong></p>
+                {j.strategyId === 'kishara-boss-rush' && <p className="muted">边界机会提示；是否能保图仍需检查实际接触、连接、锁定和装备转金币限制。</p>}
                 {j.missing.length > 0 ? <>
                   <p className="recommendation-missing">尚缺：{j.missing.join('、')}。</p>
                   <p>可先切换查看玩法，建议补齐后运行。</p>

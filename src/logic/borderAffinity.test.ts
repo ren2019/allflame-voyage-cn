@@ -27,6 +27,14 @@ describe('边界适配分', () => {
     expect(evaluateBorderAffinity('alc-and-go', [...Array(11).fill('b-pack-1'), 'future-border'])).toMatchObject({ status: 'unsupported', total: null })
   })
 
+  it('琪莎拉保图边界按50%=10、30%=8累加，其他边界零专项分且未知仍未知', () => {
+    const result = evaluateBorderAffinity('kishara-boss-rush', ['b-keep-1', 'b-keep-2', 'b-keep-2', ...Array(9).fill('b-pack-1')])
+    expect(result.total).toBe(28)
+    expect(result.contributions.slice(0, 3).map((c) => c.weight)).toEqual([8, 10, 10])
+    expect(evaluateBorderAffinity('kishara-boss-rush', ['future', ...Array(11).fill('b-keep-2')])).toMatchObject({ status: 'unsupported', total: null })
+    expect(evaluateBorderAffinity('kishara-boss-rush', ['b-keep-1']).contributions[0].weight).toBe(8)
+  })
+
   it('不能把版本配置中的无效权重当作完整评估', () => {
     const rules = structuredClone(BORDER_AFFINITY_RULES)
     rules.strategies['alc-and-go'].weights['b-pack-1'].weight = Number.NaN
@@ -34,8 +42,7 @@ describe('边界适配分', () => {
   })
 
   it('初版表覆盖每种当前策略和边界，并给每条权重可追溯的解释', () => {
-    expect(evaluateBorderAffinity('kishara-boss-rush', Array(12).fill('b-pack-1')).status).toBe('unsupported')
-    for (const strategy of STRATEGIES.filter((s) => s.id !== 'kishara-boss-rush')) {
+    for (const strategy of STRATEGIES) {
       const profile = BORDER_AFFINITY_RULES.strategies[strategy.id]
       expect(profile.requiredBorderId).toBe(strategy.requiresBorderId?.id ?? null)
       for (const border of BORDER_MODS) {

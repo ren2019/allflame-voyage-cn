@@ -252,3 +252,21 @@ describe('strategy pool limits (issue #49)', () => {
     expect(solvePool.filter((c) => c.areaType === 'anchorfield')).toHaveLength(2)
   })
 })
+
+
+describe('Kishara material protection', () => {
+  it('never spends Anchorfields as Boss fillers, including surplus and locked instances', () => {
+    const pool = [chart({ uid: 'a1', areaType: 'anchorfield' }), chart({ uid: 'a2', areaType: 'anchorfield' }), chart({ uid: 'boss', areaType: 'kisharas-rest' }), chart({ uid: 'spare' })]
+    for (const locked of [new Set<string>(), new Set(['a1', 'a2'])]) {
+      expect(selectStrategySolvePool(pool, strategyById.get('kishara-boss-rush')!, ALL_ON, locked).solvePool.map((c) => c.uid)).toEqual(['boss', 'spare'])
+    }
+  })
+})
+
+
+it('pending deletion does not occupy another strategy material keep quota', () => {
+  const pool = [chart({ uid: 'pending-wisp', modIds: ['adj-wisps-2'], pendingDeletion: true }),
+    ...Array.from({ length: 4 }, (_, i) => chart({ uid: `wisp-${i}`, modIds: ['adj-wisps-2'] })),
+    chart({ uid: 'boss', areaType: 'kisharas-rest' }), chart({ uid: 'spare' })]
+  expect(selectStrategySolvePool(pool, strategyById.get('kishara-boss-rush')!, ALL_ON).solvePool.map((c) => c.uid)).toEqual(['boss', 'spare'])
+})
