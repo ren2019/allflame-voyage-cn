@@ -1,3 +1,4 @@
+import type { ImportHit } from './logic/importDedupe'
 import { createVoyageRecord } from './logic/voyageHistory'
 import { saveTheme } from './logic/theme'
 import { CalibrationMode } from './components/CalibrationLink'
@@ -139,7 +140,18 @@ export default function App() {
   } | null>(null)
   // guided "copy into game": walk the board in the in-game Ctrl+click fill order
   // (bottom-left, then right, then up a row): board cells 6,7,8, 3,4,5, 0,1,2
-  const [copySeq, setCopySeq] = useState<{ order: number[]; step: number } | null>(null)
+  const [importFeedback, setImportFeedback] = useState<{ hits: ImportHit[] } | null>(null)
+  const [copySeq, setCopySeq] = useState<{ order: number[]; step: number; identity: string } | null>(null)
+  const [copiedBoard, setCopiedBoard] = useState<string | null>(null)
+  const copyBusy = useRef(false)
+  const copyIdentity = (s: AppState) => JSON.stringify({ board: s.board, pool: s.pool, borders: s.borders })
+  const copySession = useRef(copySeq)
+  copySession.current = copySeq
+  const boardIdentity = copyIdentity(state)
+  useEffect(() => {
+    if (copySeq && copySeq.identity !== boardIdentity) setCopySeq(null)
+    if (copiedBoard && copiedBoard !== boardIdentity) setCopiedBoard(null)
+  }, [boardIdentity, copySeq, copiedBoard])
   const copyControls = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!copySeq) return
@@ -175,7 +187,13 @@ export default function App() {
   const [selectedChart, setSelectedChart] = useState<string | null>(null)
   const [selectedCell, setSelectedCell] = useState<number | null>(null)
   const [results, setResults] = useState<SolverResult[]>([])
+  const [refilledCells, setRefilledCells] = useState<number[]>([])
+  const resultBoard = useRef(state.board)
   const [resultContext, setResultContext] = useState<SolveResultContext | null>(null)
+  useEffect(() => {
+    if (resultBoard.current !== state.board) { setResultContext(null); setRefilledCells([]) }
+    resultBoard.current = state.board
+  }, [state.board])
   // which solver result is currently loaded on the board (highlights its card)
   const [appliedIdx, setAppliedIdx] = useState<number | null>(null)
   const [shareMsg, setShareMsg] = useState('')
@@ -288,6 +306,12 @@ export default function App() {
     return [...counts.values()]
   }, [state.borders, state.board, chartMap])
 
+  const loadPlanningState = (next: AppState | ((previous: AppState) => AppState)) => {
+    copySession.current = null
+    setCopySeq(null)
+    setCopiedBoard(null)
+    setState(next)
+  }
   const patch = (p: Partial<AppState>) => setState((s) => ({ ...s, ...p }))
 
   const toggleMod = (id: string, off: boolean) =>
@@ -307,12 +331,14 @@ export default function App() {
   const addCharts = (charts: ChartData[]) =>
     setState((s) => ({ ...s, pool: [...s.pool, ...charts] }))
 
-  const removeChart = (uid: string) =>
+  const removeChart = (uid: string) => {
+    setVoyageMsg('已删除库存海图，请重新求解并核对游戏内已放置海图；不足九张时需补充库存。')
     setState((s) => ({
       ...s,
       pool: s.pool.filter((c) => c.uid !== uid),
       board: s.board.map((p) => (p?.chartUid === uid ? null : p)),
     }))
+  }
 
   const clearCharts = () => {
     if (!window.confirm('移除全部库存海图并清空摆盘？边界和权重会保留。'))
@@ -375,20 +401,34 @@ export default function App() {
     chart.implicitText ??
     chart.modIds.map((id) => voyageModById.get(id)).filter((m) => m && m.scope !== 'self').map((m) => voyageModText(m!.id))[0] ??
     ''
-  const copyChartDetails = (chart: ChartData) => {
-    navigator.clipboard.writeText(buildSingleChartSearch(chart)).catch(() => {})
-  }
   const startCopySeq = () => {
     const order = FILL_ORDER.filter((i) => state.board[i])
-    if (order.length) setCopySeq({ order, step: 0 })
+    if (order.some((i) => chartMap.get(state.board[i]!.chartUid)?.pendingDeletion)) {
+      setVoyageMsg('摆盘含待删除海图，请清理或重新求解后复制。')
+      return
+    }
+    setCopiedBoard(null)
+    if (order.length) setCopySeq({ order, step: 0, identity: copyIdentity(state) })
   }
-  // copy the current square's chart, then advance to the next fill position
-  const copyCurrentAndAdvance = () => {
-    if (!copySeq) return
-    const chart = chartMap.get(state.board[copySeq.order[copySeq.step]]!.chartUid)
-    if (chart) copyChartDetails(chart)
-    if (copySeq.step + 1 >= copySeq.order.length) setCopySeq(null)
-    else setCopySeq({ ...copySeq, step: copySeq.step + 1 })
+  const copyCurrentAndAdvance = async () => {
+    const session = copySession.current
+    if (!session || copyBusy.current) return
+    const snapshot = currentState.current
+    if (session.identity !== copyIdentity(snapshot)) { setCopySeq(null); return }
+    const placement = snapshot.board[session.order[session.step]]
+    const chart = snapshot.pool.find((c) => c.uid === placement?.chartUid)
+    if (!chart || chart.pendingDeletion) { setCopySeq(null); return }
+    copyBusy.current = true
+    try {
+      await navigator.clipboard.writeText(buildSingleChartSearch(chart))
+      if (copySession.current !== session || copyIdentity(currentState.current) !== session.identity) return
+      if (session.step + 1 >= session.order.length) {
+        setCopySeq(null)
+        if (session.order.length === 9) setCopiedBoard(session.identity)
+      } else setCopySeq({ ...session, step: session.step + 1 })
+    } catch {
+      setVoyageMsg('复制失败，请允许剪贴板访问后重试；当前步骤尚未推进。')
+    } finally { copyBusy.current = false }
   }
 
   // while stepping, Ctrl+C copies the current square and advances; Esc cancels
@@ -632,7 +672,7 @@ export default function App() {
           </div>
           <div className="planning-transfer">
             <button onClick={share}>{shareMsg || '分享摆盘'}</button>
-            <PlanningBackup state={state} onLoadState={setState} />
+            <PlanningBackup state={state} onLoadState={loadPlanningState} />
           </div>
         </div>
       </header>
@@ -652,17 +692,25 @@ export default function App() {
               setSelectedCell(null)
             }}
             onAdd={addCharts}
+            importFeedback={importFeedback}
+            onCloseFeedback={() => setImportFeedback(null)}
+            onClearPending={() => {
+              setState((s) => { const marked = new Set(s.pool.filter((c) => c.pendingDeletion).map((c) => c.uid));
+                return { ...s, pool: s.pool.filter((c) => !marked.has(c.uid)), board: s.board.map((p) => p && marked.has(p.chartUid) ? null : p) } })
+              setVoyageMsg('已清理待删除海图，请重新求解；不足九张时需补充库存，并核对游戏内已放置的海图。')
+            }}
             onRemove={removeChart}
             onUpdate={updateChart}
             onClearCharts={clearCharts}
             onOpenSaveWizard={() => setShowSaveWizard(true)}
           />
-          <ImportPanel onImport={addCharts} state={state} onLoadState={setState} />
+          <ImportPanel onFeedback={(hits) => setImportFeedback({ hits })} onImport={addCharts} state={state} onLoadState={loadPlanningState} />
           <KeeperAssistant />
         </section>
 
         <section className="col board-col">
           <BoardView
+            refilledCells={refilledCells}
             board={state.board}
             borders={state.borders}
             charts={chartMap}
@@ -689,6 +737,11 @@ export default function App() {
                 return { ...s, board }
               })
             }
+            onToggleDeletion={(uid) => setState((s) => ({ ...s, pool: s.pool.map((c) => c.uid === uid ? { ...c, pendingDeletion: !c.pendingDeletion } : c) }))}
+            onMissing={(i) => setState((s) => {
+              const uid = s.board[i]?.chartUid
+              return { ...s, pool: s.pool.map((c) => c.uid === uid ? { ...c, pendingDeletion: true } : c), board: s.board.map((p, cell) => cell === i ? null : p) }
+            })}
             onRotate={(i) =>
               setState((s) => {
                 const board = [...s.board]
@@ -707,6 +760,7 @@ export default function App() {
             onTogglePreserve={togglePreserve}
             onFinishVoyage={finishVoyage}
             onCopySequence={startCopySeq}
+            copyComplete={copiedBoard === boardIdentity}
             voyageMsg={voyageMsg}
             sequenceActive={!!copySeq || !!preserveConfirm}
             solveSlot={
@@ -717,12 +771,15 @@ export default function App() {
                 resultContext={resultContext}
                 appliedIdx={appliedIdx}
                 onResults={(r, context) => {
+                  setRefilledCells(context?.origin === 'refill' && r.length ? context.locked.flatMap((p, i) => p ? [] : [i]) : [])
                   setResults(r)
                   setResultContext(context)
                   setAppliedIdx(null)
                 }}
                 onApply={(r, idx) => {
-                  patch({ board: r.board.map((p) => (p ? { ...p } : null)) })
+                  const board = r.board.map((p) => (p ? { ...p } : null))
+                  resultBoard.current = board
+                  patch({ board })
                   setAppliedIdx(idx)
                   setSelectedCell(null)
                   setSelectedChart(null)
@@ -740,7 +797,7 @@ export default function App() {
                 从左下角开始。第 {copySeq.step + 1}/{copySeq.order.length} 步。
               </div>
               {(() => {
-                const c = chartMap.get(state.board[copySeq.order[copySeq.step]]!.chartUid)
+                const c = chartMap.get(state.board[copySeq.order[copySeq.step]]?.chartUid ?? '')
                 if (!c) return null
                 return (
                   <>

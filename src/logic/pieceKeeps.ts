@@ -231,6 +231,12 @@ export function selectPieceBank(
   prefs: StrategyReservationPreferences,
 ): Map<string, PieceType> {
   const bank = new Map<string, PieceType>()
+  // Boss protection is unconditional and covers every instance, including
+  // old backups and user keep-count overrides.
+  const boss: PieceType = { key: 'kishara-boss-rush:all', strategyId: 'kishara-boss-rush',
+    strategyName: '琪莎拉 Boss 速刷', reservationId: null, label: '全部琪莎拉海图',
+    areaTypes: ['kisharas-rest'], recommended: 1, defaultKeep: 1, banks: true }
+  for (const chart of pool) if (chart.areaType === 'kisharas-rest') bank.set(chart.uid, boss)
   for (const p of [...PIECE_TYPES, ...customPieceTypes(keeps)]) {
     if (!p.banks) continue
     if (p.reservationId && !prefs[p.reservationId]) continue

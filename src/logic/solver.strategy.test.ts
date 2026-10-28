@@ -31,3 +31,25 @@ describe('strategy destination rules', () => {
     expect(best.board[4]?.chartUid).toBe('sea-pillars')
   })
 })
+
+
+describe('exact destination constraint (#45)', () => {
+  const options = { mode: 'any' as const, allowRotation: false, topK: 2,
+    adjacencyMode: 'physical' as const, adjacentAffectsSelf: false,
+    destinationCounts: [{ areaType: 'anchorfield' as const, count: 1 }] }
+  const ordinary = Array.from({ length: 8 }, (_, i) => chart(`plain-${i}`, '普通', 'abyssal-plain'))
+  it('finds legal candidates containing the required actual instance', () => {
+    const results = solve([...ordinary, chart('anchor', '锚地', 'anchorfield')], emptyBorders(), {}, options)
+    expect(results.length).toBeGreaterThan(0)
+    for (const result of results) {
+      expect(result.valid).toBe(true)
+      expect(result.board.filter((p) => p?.chartUid === 'anchor')).toHaveLength(1)
+    }
+  })
+  it('rejects missing material and conflicting locked instances', () => {
+    expect(solve(ordinary, emptyBorders(), {}, options)).toEqual([])
+    const anchors = [chart('a', '同名', 'anchorfield'), chart('b', '同名', 'anchorfield')]
+    expect(solve([...ordinary, ...anchors], emptyBorders(), {}, { ...options,
+      locked: [{ chartUid: 'a', rotation: 0 }, { chartUid: 'b', rotation: 0 }, ...Array(7).fill(null)] })).toEqual([])
+  })
+})

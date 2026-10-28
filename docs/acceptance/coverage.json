@@ -941,5 +941,48 @@
     ]
   },
   "windowsEvidence": "docs/acceptance/evidence/windows-calibration-green.json",
-  "requiredWindowsImportedCharts": 5
+  "requiredWindowsImportedCharts": 5,
+  "coreFileRevisions": [
+    {
+      "version": "cn-material-constraints-v1",
+      "path": "src/logic/solver.ts",
+      "previousSha256": "cdd4f482e4b8eca852c938e928496f87e832a3f3a3abc2920c3f7a913e29e2fa",
+      "sha256": "c99bd7cfe800c5ae14839739eab2e2b1a24bbd37c5578dc5e4dafccd3a707f4d",
+      "authorization": "User explicitly authorized a versioned solver baseline on 2026-10-28; original solver and scoring fingerprints retained.",
+      "issues": [
+        44,
+        45,
+        46,
+        49,
+        50
+      ],
+      "tests": [
+        {
+          "suite": "unit",
+          "file": "src/logic/solver.strategy.test.ts",
+          "nameIncludes": "exact destination constraint"
+        },
+        {
+          "suite": "unit",
+          "file": "src/logic/strategyConstraints.test.ts",
+          "nameIncludes": "inventory, executable and destination contracts"
+        },
+        {
+          "suite": "unit",
+          "file": "src/logic/strategyConstraints.test.ts",
+          "nameIncludes": "Boss actual effect scope"
+        },
+        {
+          "suite": "browser",
+          "file": "tests/browser/inventory-corrections.spec.ts",
+          "nameIncludes": "#49 #46"
+        },
+        {
+          "suite": "browser",
+          "file": "tests/browser/inventory-corrections.spec.ts",
+          "nameIncludes": "#50 补位后"
+        }
+      ]
+    }
+  ]
 }

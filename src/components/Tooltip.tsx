@@ -44,15 +44,15 @@ export function TooltipLayer() {
   if (!state) return null
   const { anchor, data } = state
 
-  const width = 320
+  const width = Math.min(320, window.innerWidth - 16)
   let left = anchor.left + anchor.width / 2 - width / 2
   left = Math.max(8, Math.min(left, window.innerWidth - width - 8))
   // prefer above the anchor; flip below when cramped
   const estHeight = 60 + data.lines.length * 22
-  const above = anchor.top - 8 - estHeight > 0
+  const above = anchor.top - 8 - estHeight > 0 || anchor.top > window.innerHeight - anchor.bottom
   const style: React.CSSProperties = above
-    ? { left, width, bottom: window.innerHeight - anchor.top + 8 }
-    : { left, width, top: anchor.bottom + 8 }
+    ? { left, width, maxHeight: Math.max(40, anchor.top - 16), overflowY: 'auto', bottom: window.innerHeight - anchor.top + 8 }
+    : { left, width, maxHeight: Math.max(40, window.innerHeight - anchor.bottom - 16), overflowY: 'auto', top: anchor.bottom + 8 }
 
   return (
     <div className="poe-tooltip" style={style}>

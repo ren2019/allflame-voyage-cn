@@ -1,10 +1,14 @@
+import { bossConversionConflict, destinationCountViolations } from './strategyConstraints'
 import type { Board, Borders, ChartData, ConnectivityMode, Edges, Placement, Weights } from '../types'
 import { borderTouches } from '../types'
-import type { PositionRule } from '../data/strategies'
+import type { PositionRule, StrategyDef } from '../data/strategies'
 import { checkConnectivity, rotateEdges } from './connectivity'
 import { scoreBoard, type ScoreOptions } from './scoring'
 
 export interface SolverOptions extends ScoreOptions {
+  bossSafety?: boolean
+  bossCells?: number[]
+  destinationCounts?: StrategyDef['destinationCounts']
   mode: ConnectivityMode
   allowRotation: boolean
   /** how many top results to return */
@@ -136,13 +140,16 @@ function evaluate(
   const layoutPen = opts.strategyLayout
     ? layoutMisses(board, charts, opts.strategyLayout) * (opts.strategyLayoutPenalty ?? LAYOUT_PENALTY)
     : 0
+  let destinationMisses = destinationCountViolations(board, charts, opts.destinationCounts)
+  if (opts.bossSafety && bossConversionConflict(board, borders, charts, opts)) destinationMisses++
+  if (opts.bossCells && !board.some((p, i) => p && charts.get(p.chartUid)?.areaType === 'kisharas-rest' && opts.bossCells!.includes(i))) destinationMisses++
   const objective =
-    rewardTerm +
+    rewardTerm - destinationMisses * VIOLATION_PENALTY +
     strat +
     conn.connections * CONNECTION_BONUS -
     layoutPen -
     conn.violations * VIOLATION_PENALTY
-  return { score: objective, valid: conn.valid, reward: s.total }
+  return { score: objective, valid: conn.valid && destinationMisses === 0, reward: s.total }
 }
 
 function boardKey(board: Board): string {
@@ -162,6 +169,11 @@ export function solve(
 ): SolverResult[] {
   const charts = new Map(pool.map((c) => [c.uid, c]))
   if (pool.length === 0) return []
+  for (const rule of opts.destinationCounts ?? []) {
+    const available = pool.filter((c) => c.areaType === rule.areaType).length
+    const pinned = (opts.locked ?? []).filter((p) => p && charts.get(p.chartUid)?.areaType === rule.areaType).length
+    if (available < rule.count || pinned > rule.count) return []
+  }
 
   const CAP = Math.max(opts.topK * 4, 20)
   let top: SolverResult[] = []
@@ -298,6 +310,19 @@ function hillClimb(
       }
     }
 
+    // Seed required destinations before filling ordinary slots. Locked cells
+    // remain untouched; the objective preserves the count during exploration.
+    for (const rule of opts.destinationCounts ?? []) {
+      let count = board.filter((p) => p && charts.get(p.chartUid)?.areaType === rule.areaType).length
+      for (const chart of shuffled) {
+        if (count >= rule.count) break
+        if (chart.areaType !== rule.areaType || board.some((p) => p?.chartUid === chart.uid)) continue
+        const cell = board.findIndex((p) => !p)
+        if (cell < 0) break
+        board[cell] = { chartUid: chart.uid, rotation: Math.floor(Math.random() * rotMax) }
+        count++
+      }
+    }
     const remaining = shuffled.filter((c) => !board.some((p) => p?.chartUid === c.uid))
     let ri = 0
     for (let i = 0; i < 9 && ri < remaining.length; i++) {

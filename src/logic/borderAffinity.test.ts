@@ -34,7 +34,8 @@ describe('边界适配分', () => {
   })
 
   it('初版表覆盖每种当前策略和边界，并给每条权重可追溯的解释', () => {
-    for (const strategy of STRATEGIES) {
+    expect(evaluateBorderAffinity('kishara-boss-rush', Array(12).fill('b-pack-1')).status).toBe('unsupported')
+    for (const strategy of STRATEGIES.filter((s) => s.id !== 'kishara-boss-rush')) {
       const profile = BORDER_AFFINITY_RULES.strategies[strategy.id]
       expect(profile.requiredBorderId).toBe(strategy.requiresBorderId?.id ?? null)
       for (const border of BORDER_MODS) {

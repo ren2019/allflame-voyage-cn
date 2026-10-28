@@ -2,7 +2,7 @@ import { expect, type Page } from '@playwright/test'
 import type { AppState } from '../../src/logic/storage'
 
 export async function openEmptyApp(page: Page) {
-  await page.goto('/')
+  await page.goto('./')
   await page.locator('.onboard-actions button').last().click()
 }
 

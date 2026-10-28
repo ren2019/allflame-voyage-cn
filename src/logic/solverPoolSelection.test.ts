@@ -203,7 +203,7 @@ describe('keep-count solve pools', () => {
 describe('strategy pool limits (issue #49)', () => {
   const anchorfield = strategyById.get('anchorfield-fishing')!
 
-  it('offers only the single best Anchorfield to Anchorfield Fishing', () => {
+  it('retains alternative Anchorfield instances for the exact output constraint', () => {
     const pool = [
       chart({ uid: 'a-weak', areaType: 'anchorfield' as ChartAreaType }),
       chart({
@@ -220,11 +220,11 @@ describe('strategy pool limits (issue #49)', () => {
     ]
     const { solvePool } = selectStrategySolvePool(pool, anchorfield, ALL_ON)
     const anchors = solvePool.filter((c) => c.areaType === 'anchorfield')
-    expect(anchors.map((c) => c.uid)).toEqual(['a-best'])
+    expect(anchors.map((c) => c.uid)).toEqual(['a-weak', 'a-best', 'a-mid'])
     expect(solvePool.map((c) => c.uid)).toContain('junk')
   })
 
-  it('locked charts bypass the cap but still count toward it', () => {
+  it('retains locked and alternative instances for output count validation', () => {
     const pool = [
       chart({ uid: 'a-locked', areaType: 'anchorfield' as ChartAreaType }),
       chart({
@@ -240,7 +240,7 @@ describe('strategy pool limits (issue #49)', () => {
       new Set(['a-locked']),
     )
     const anchors = solvePool.filter((c) => c.areaType === 'anchorfield')
-    expect(anchors.map((c) => c.uid)).toEqual(['a-locked'])
+    expect(anchors.map((c) => c.uid)).toEqual(['a-locked', 'a-best'])
   })
 
   it('applies no cap when the strategy defines no limits', () => {

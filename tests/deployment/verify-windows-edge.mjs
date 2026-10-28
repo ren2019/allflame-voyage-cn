@@ -52,7 +52,7 @@ try {
   }
   assert.ok(browser, 'Unable to connect to the isolated Windows Edge')
   const context = browser.contexts()[0]
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: url })
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(url).origin })
   const page = context.pages()[0] ?? await context.newPage()
   const failures = []
   const badResponses = []
@@ -61,7 +61,7 @@ try {
   const response = await page.goto(url, { waitUntil: 'networkidle' })
   assert.equal(response.status(), 200)
   const environment = await page.evaluate(() => ({ origin: location.origin, secureContext: window.isSecureContext, clipboardWrite: typeof navigator.clipboard?.writeText, userAgent: navigator.userAgent }))
-  assert.equal(environment.origin, url)
+  assert.equal(environment.origin, new URL(url).origin)
   assert.equal(environment.secureContext, true)
   assert.equal(environment.clipboardWrite, 'function')
   assert.match(environment.userAgent, /Windows NT.*Edg\//)

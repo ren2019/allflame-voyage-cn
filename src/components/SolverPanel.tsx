@@ -74,7 +74,12 @@ export function SolverPanel({ state, activeStrategy, onPatch, onResults, onClose
           return chart?.preserved ? { ...placement } : null
         })
         const lockedUids = new Set(locked.filter(Boolean).map((p) => p!.chartUid))
-        const fillerPool = state.pool.filter((c) => lockedUids.has(c.uid) || !keep.has(c.uid))
+        const fillerPool = state.pool.filter((c) => !c.pendingDeletion && c.areaType !== 'kisharas-rest' && (lockedUids.has(c.uid) || !keep.has(c.uid)))
+        if (locked.some((p) => p && !fillerPool.some((c) => c.uid === p.chartUid))) {
+          onResults([], null)
+          setSolveNote('锁定的琪莎拉海图受保护，不能用于备用航程；请手动调整锁定。')
+          return
+        }
         if (fillerPool.length < 9) {
           onResults([], null)
           setSolveNote(

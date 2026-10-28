@@ -19,7 +19,7 @@ interface Props {
  *  jackpot banners so they can never contradict the strategy card) */
 export function pieceStatus(s: StrategyDef, pool: ChartData[]) {
   return (s.requirements ?? []).map((req) => {
-    const have = pool.filter(
+    const have = pool.filter((c) => !c.pendingDeletion && (c.areaType !== 'kisharas-rest' || s.id === 'kishara-boss-rush')).filter(
       (c) =>
         (req.modIds && c.modIds.some((id) => req.modIds!.includes(id))) ||
         (req.areaTypes && c.areaType && req.areaTypes.includes(c.areaType)),
