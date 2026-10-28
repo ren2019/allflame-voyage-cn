@@ -77,6 +77,23 @@ for (const theme of ['dark', 'light']) test(`#47 ${theme} 悬浮目的地保留�
   await expect(page.locator('.poe-tooltip')).toContainText('区域等级：83')
 })
 
+test('普通目的地不显示高亮目的地行，特殊目的地保留', async ({ page }) => {
+  await openEmptyApp(page)
+  const s = inventory()
+  s.pool[1].areaType = 'seafloor-ridges'
+  s.pool[2].areaType = 'undersea-groves'
+  await loadState(page, s)
+  for (const cell of [1, 2, 3]) {
+    await page.locator('.board-grid .tile').nth(cell).hover()
+    await expect(page.locator('.poe-tooltip')).toContainText(`合成海图${cell}`)
+    await expect(page.locator('.poe-tooltip')).toContainText('区域等级：83')
+    await expect(page.locator('.poe-tooltip .destination-orange')).toHaveCount(0)
+    await expect(page.locator('.poe-tooltip')).not.toContainText('目的地：')
+  }
+  await page.locator('.board-grid .tile').first().hover()
+  await expect(page.locator('.poe-tooltip .destination-orange')).toHaveText('目的地：锚地')
+})
+
 test('#48 全部成功才突出核销，刷新与失败不保留提醒', async ({ page }) => {
   await installClipboardRecorder(page); await openEmptyApp(page); await loadState(page, inventory())
   await page.locator('.copy-into-game').click()
