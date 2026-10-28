@@ -1,28 +1,135 @@
 <!doctype html>
-<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>国服海图采集器：候选安装与启动</title>
-<style>body{font:18px/1.7 system-ui,sans-serif;max-width:48em;margin:2em auto;padding:0 1em;color:#202630}kbd{background:#eee;padding:.1em .3em}a{color:#175caa}</style>
-<h1>国服海图采集器：候选安装与启动</h1>
-<p>这是可审查的 Windows x64 候选，尚未公开发布；真实 Windows 授权、游戏操作与新手体验等待玩家验收。版本及摘要在随包 <code>collector-package.json</code> 与外部摘要文件中。工具只被动读取你主动复制的海图与边界截图，不自动操作游戏，不上传截图或剪贴板。</p>
-<ol><li>右键安装压缩包，选择“全部解压”；不要在压缩包内直接运行。</li>
-<li>双击“安装或更新国服海图采集器.cmd”。安装窗口会显示版本、目录、下载量、校验与自检；普通路径不需要自己安装 AHK、Python 或输入命令。</li>
-<li>如本机缺微软原生运行库，会打开 Microsoft Visual C++ 安装窗口及正常管理员授权。核对 Microsoft Corporation，阅读许可并选择安装；取消或要求重启时不会假报成功。已有兼容组件且实际模型能加载时跳过此步骤。</li>
-<li>完成后使用桌面的“国服海图采集器”。正常管理员授权显示的是 Windows PowerShell（Microsoft Windows），本项目脚本没有受信任发布者签名。确认路径来自你认可的候选后选择是；取消则未启动，可重新双击。</li></ol>
-<p>管理员授权与游戏同权限是为了接收 F7/F8。使用其他管理员账号时，启动入口仍使用原安装用户登记的绝对路径；权限不足请联系设备管理员，不向工具提供密码。不要关闭 UAC、防护或永久放宽全局执行策略。</p>
-<h2>看到已就绪后再采集</h2>
-<p>准备与模型加载中不等于已就绪。浮窗显示版本及权限后：F7 开始海图采集，逐张悬停并手动 <kbd>Ctrl+Alt+C</kbd>，计数增加后 F7 结束，回网页粘贴。F7 不自动扫描仓库。</p>
-<p>只读边界无需先 F7。打开航程规划，手动按住 Alt 显示十二条提示，再按 F8；看到本工具“截图已完成，可以松开 Alt”后松开。等待读取完成，依浮窗输出并在网页导入；F7 批次中的 F8 必须等待完成再 F7 结束。读到十二处文字不等于网页匹配十二条，未匹配可重试或手动补选。</p>
-<h2>读取与输出失败时</h2>
-<p>“截图中”继续保持 Alt；看到“截图已完成，可以松开 Alt”后可松开，等待“已读取 X/12 处边界文字”。混合批次会提示“已加入当前批次，请再按 F7 统一输出海图和边界”；识别中提前 F7 会提示等待，保留批次。独立 F8 会直接输出，不需要 F7。</p>
-<p>只有“内容已输出到剪贴板”后才回网页粘贴。写入剪贴板失败时内容仍保留，可从托盘选择“重试输出内容”；活动批次会统一输出，不会只输出边界而漏海图。具体截图、识别或输出错误不会被空批次消息覆盖。游戏自身“已保存截图”不等于本工具截图成功。</p>
-<p>读取数量不等于网页匹配数量。网页展开“查看未匹配边界文字”逐槽核对，可重试 F8 或手动补选。完整十二槽至少匹配一条时本次结果替换全套、未匹配槽留空；全失败保留原边界；部分输入只更新成功槽位。</p>
-<p>托盘“查看本地诊断”用记事本打开原安装目录 diagnostics/collector-last.txt，包含版本、权限、失败阶段和最近边界原文及其取得时间；新截图失败时旧原文仍有原时间标记。仅保存在本机，不记录一般剪贴板、海图原文或整图，不自动上传；裸脚本只使用自己的临时目录。主动另存的资料请自行保留。</p>
-<h2>重复启动、退出与失败</h2>
-<p>重复启动保留正在运行的实例与未导出批次。退出：任务栏右下角找到采集器图标（可能在隐藏图标中），右键选择“退出”。安装前先结束导出再退出。</p>
-<p>下载、摘要或缺组件错误：保留窗口原文与本地诊断，重新双击同一安装入口重试。网络不可达可使用完整离线候选包，不存在的镜像或公开 Release 不作承诺。安全或组织策略拦截时联系设备管理员，不关闭防护。OCR 错字或网页不匹配需核对文字及位置，不能反复提权冒充解决。</p>
-<h2>更新、修复与卸载</h2>
-<p>从旧 0.2.2／0.2.3 升级时，解压新的完整候选，双击新包内“安装或更新国服海图采集器.cmd”。旧版本还没有维护菜单；新入口会显示当前、目标版本和变化说明，确认前可取消。先结束并导出批次，从托盘“退出”，再更新。</p>
-<p>安装本版后，桌面的“国服海图采集器维护”、安装目录内“维护国服海图采集器.cmd”及托盘“更新、修复与卸载”使用同一登记。选择“查看版本与诊断”可核对实际组件目录；“更新采集器”选择已下载的固定版本 ZIP，“修复安装”重用固定源与校验缓存。源包或维护入口损坏时，重新解压完整候选并双击安装入口，不需要临时补输命令。</p>
-<p>安装中断时重新打开维护入口，会先恢复中断前的稳定入口、快捷方式和登记。文件另有修改时保留原物并说明，避免覆盖资料。修复或更新必须完成真实本地模型检查后才切换，准备归档或读取版本不等于已就绪。</p>
-<p>“卸载采集器”会先说明范围并要求确认。只删除登记且字节相符的工具文件与快捷方式；未登记／已修改的内容、本地诊断、主动保存的截图与样本会保留，即使位于安装根或版本目录。网页库存、规划和共享 Microsoft VC++ 不在卸载范围。运行中须先导出并退出，不自动关闭采集器或其他脚本。</p>
-<p>本候选安装与脚本支持范围尚待真实 Windows 验收；跨平台归档检查不代表 Windows、UAC 或游戏通过。安装使用当前用户的固定目录，不改网页库存与规划。来源：<a href="https://github.com/ren2019/allflame-voyage-cn/pull/78">集成 PR #78</a>。</p></html>
+<html lang="zh-CN" data-theme="dark">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>国服海图采集器：安装与使用</title>
+<style>
+:root{color-scheme:dark;--bg:#181b20;--panel:#23272e;--text:#e5e8ee;--muted:#b3bdcd;--line:#414955;--accent:#a3ceff}
+:root[data-theme=light]{color-scheme:light;--bg:#fff;--panel:#f2f5fa;--text:#202938;--muted:#4d5d76;--line:#cad3df;--accent:#245e98}
+*{box-sizing:border-box}html{scroll-behavior:auto}body{max-width:850px;margin:24px auto;padding:0 18px 36px;background:var(--bg);color:var(--text);font:16px/1.75 system-ui,sans-serif;overflow-wrap:anywhere}h1{font-size:26px;line-height:1.4;margin:0}h2{font-size:21px;margin:30px 0 10px;scroll-margin-top:16px}p{margin:10px 0}a{color:var(--accent);text-underline-offset:3px}a:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}button{padding:5px 10px;border:1px solid var(--line);border-radius:5px;background:var(--panel);color:var(--text);cursor:pointer;font:inherit}.heading{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px}.status{color:var(--muted);font-size:14px}.notice{padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--panel)}nav{display:flex;flex-wrap:wrap;gap:8px 16px;margin:16px 0}ol,ul{padding-left:24px}li{margin:7px 0}table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px}th,td{border:1px solid var(--line);padding:9px;vertical-align:top;text-align:left}th{background:var(--panel)}th:first-child,td:first-child{width:30%}details{margin:20px 0;padding:12px;border:1px solid var(--line);border-radius:6px}summary{cursor:pointer;font-weight:600}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6}code,kbd{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:1px 4px;font-size:.9em}footer{border-top:1px solid var(--line);padding-top:16px;margin-top:30px;color:var(--muted);font-size:14px}@media(max-width:500px){body{margin:16px auto;padding:0 14px 28px}h1{font-size:23px}h2{font-size:19px}th,td{padding:7px}nav{gap:7px 12px}}
+</style></head>
+<body>
+<header class="heading"><h1>国服海图采集器：安装与使用</h1><button id="theme-toggle" type="button" aria-label="切换到浅色主题">浅色</button></header>
+<p id="guide-version" class="status" role="status">正在读取候选版本…</p>
+<div class="notice"><strong>候选尚未公开发布。</strong> 安装ZIP随本轮验收材料提供；当前没有公开Release或额外镜像。目标为Windows x64，真实新组件运行、授权、游戏和新手体验仍待玩家验收。</div>
+<p>工具被动读取你主动复制的海图与边界截图，不自动移动鼠标、按键、点击或扫描仓库，不上传图片或剪贴板。首次安装/更新需取得固定组件，准备成功后可在本机离线使用。</p>
+<p><strong>下载参考：</strong>小启动包不到0.1 MiB，之后组件最多约120 MiB；完整离线包约119 MiB，已附组件归档，不重复计下载量。<strong>空间参考：</strong>程序与缓存的准备目录约374 MiB；若缓存微软安装包约392 MiB，共享微软系统组件、候选ZIP、暂存和旧版本另计。Windows实际占用以验收为准。</p>
+<nav aria-label="使用说明目录"><a href="#install">首次安装</a><a href="#charts">采集海图</a><a href="#borders">只读边界</a><a href="#mixed">混合批次</a><a href="#problems">常见问题</a><a href="#maintenance">更新与卸载</a><a href="#candidate">候选信息</a></nav>
+<h2 id="install">第一次安装</h2>
+<ol>
+<li>下载与你要验收的版本相符的安装包。右键压缩包，选择“全部解压”，打开解压后的文件夹；不要直接在压缩包内运行。</li>
+<li>双击“安装或更新国服海图采集器.cmd”。不需要先安装 AutoHotkey 或 Python，也不用输入命令、编辑配置或更改文件关联。</li>
+<li>核对窗口中的版本、安装目录和下载内容，依次等待环境检查、下载、文件校验、准备组件、模型自检和创建快捷方式。下载阶段会显示大小和进度。</li>
+<li>如果缺少微软原生运行库，会打开 Microsoft Visual C++ 安装窗口及正常管理员授权。核对 Microsoft Corporation，阅读许可并选择安装。若取消或要求重启，按窗口说明处理后重试，不能以此时的窗口退出当作安装成功。</li>
+<li>看到“安装完成”后，双击桌面的“国服海图采集器”开始使用。桌面的“国服海图采集器使用说明”可重新打开本文。</li>
+</ol>
+<p>默认安装在当前用户的固定应用目录，日常启动不依赖下载目录或AHK文件关联。正常安装不要求先打开管理员终端。若系统或组织策略阻止运行，请保留错误并联系设备管理员；不要关闭防护、关闭UAC或永久放宽全局执行策略。</p>
+<h2 id="startup">第一次启动与管理员授权</h2>
+<p>双击桌面的“国服海图采集器”。Windows如询问“是否允许此应用对你的设备进行更改”，核对你正在启动本候选后选择“是”。系统窗口里的 Windows PowerShell / Microsoft Windows 属于Windows启动程序；采集器来自本项目，项目脚本没有受信任发布者签名。</p>
+<p>国服游戏以管理员权限运行时，采集器也需要同等权限，才能接收相关操作。使用桌面主入口会申请正常授权；工具不保存密码，不用隐藏服务或计划任务跳过授权。</p>
+<p>选择“否”时会提示“未启动：管理员授权已取消”。这时还没有启动采集器，重新双击桌面入口即可重试。若用另一管理员账号确认，仍应使用原安装用户登记的目录；若提示目录无权限，请联系设备管理员，不要把密码交给工具。</p>
+<p>先等待“正在检查本机组件与加载中文模型，尚未就绪”，再确认浮窗出现工具版本、权限模式和“采集器已就绪”。出现窗口或进程不代表模型已准备成功。缺组件或版本不一致时，先按提示修复再采集。</p>
+<p>重复启动时先回到已有浮窗，完成并导出正在进行的批次。不要为了重新启动而关闭尚未导出的内容。</p>
+<h2 id="charts">采集海图</h2>
+<ol>
+<li>确认采集器“已就绪”。</li>
+<li>在游戏里按F7开始，确认浮窗显示“采集中：0张海图”。</li>
+<li>鼠标逐张悬停在已测绘海图上，手动按Ctrl+Alt+C取得高级复制文字，确认浮窗计数增加。</li>
+<li>按F7结束；看到“内容已输出到剪贴板”后回网页Ctrl+V导入。</li>
+<li>核对网页的新增、重复或拒绝提示及海图数量。</li>
+</ol>
+<p>F7只是开始和结束收集，不会自动遍历仓库。只开始再结束、没有手动复制，不会产生海图数据。连续复制相同原文沿用重复保护，不承诺每按一次都增加一张；网页也会按现有库存和原文处理重复。</p>
+<h2 id="borders">只读取十二条边界</h2>
+<ol>
+<li>不用先按F7。打开游戏的航程规划界面。</li>
+<li>手动按住Alt，让十二条边界提示都显示，再按一次F8；继续保持Alt。</li>
+<li>看到采集器提示“截图已完成，可以松开 Alt”后再松Alt。游戏自己的“已保存截图”不代表采集器已取得所需图片。</li>
+<li>等待本地识别完成。此时不要按F7结束。</li>
+<li>看到“已读取X/12处边界文字”及“内容已输出到剪贴板”后，回网页Ctrl+V导入，核对每个位置和网页实际匹配结果。</li>
+</ol>
+<p>提示音只是辅助；Shift+F7或托盘“切换提示音”可关闭/恢复。静音时按浮窗文字等待、松Alt和导入即可。F8只读边界，不采集仓库海图。</p>
+<h2 id="mixed">同一批次采集海图和边界</h2>
+<ol>
+<li>按F7开始，逐张手动Ctrl+Alt+C采集海图并核对计数。</li>
+<li>打开航程规划，按住Alt显示十二条边界，按F8；看到“截图已完成，可以松开 Alt”后松开。</li>
+<li>等到本地识别完成，看到“已加入当前批次，请再按F7统一输出海图和边界”。</li>
+<li>再按F7结束，确认内容已输出，然后回网页粘贴并分别核对海图和边界。</li>
+</ol>
+<p>如果在截图或读取期间提前按了F7，当前批次不会因此结束或清空。先按浮窗提示等待读取完成，再按F7统一输出；不要把暂时没有输出当作空批次。</p>
+<h2 id="states">看懂浮窗与网页反馈</h2>
+<table><thead><tr><th scope="col">看到的状态</th><th scope="col">现在做什么</th></tr></thead><tbody>
+<tr><td>已就绪，带版本与权限模式</td><td>选择F7海图或F8边界流程</td></tr>
+<tr><td>正在截图，请继续按住 Alt</td><td>保持十二条提示可见，等待截图完成</td></tr>
+<tr><td>截图已完成，可以松开 Alt；正在本机识别</td><td>松开Alt，等待读取完成，暂不结束批次</td></tr>
+<tr><td>已读取X/12处边界文字</td><td>这只是读到文字的数量，按独立/批次模式输出</td></tr>
+<tr><td>内容已输出到剪贴板</td><td>回网页Ctrl+V并核对结果</td></tr>
+<tr><td>网页显示已匹配X/12</td><td>核对实际位置、数字与完整词缀；这才是网页匹配数量</td></tr>
+</tbody></table>
+<p>网页未匹配时，可打开“查看未匹配边界文字（N处）”，逐槽核对原文，重新读取或手动补选。</p>
+<p>完整十二槽导入只要匹配至少一条，就用本次整组结果替换，未匹配槽位留空；全部匹配失败时保留原边界；只导入部分位置时，仅更新匹配成功的槽位。因此请核对实际结果，不要假定失败位置总会保留旧值。</p>
+<h2 id="problems">遇到问题</h2>
+<table><thead><tr><th scope="col">现象</th><th scope="col">下一步</th></tr></thead><tbody>
+<tr><td>下载后打开是代码，或系统让选打开方式</td><td>你可能打开了裸脚本。回到安装包，全部解压后双击中文安装入口，再从桌面启动。</td></tr>
+<tr><td>按F8只有游戏“已截图”，浮窗没有变化</td><td>确认已就绪、退出旧实例并从桌面入口启动，核对正常管理员授权；随后在航程规划里按住Alt再F8。若仍失败，保留诊断，不能仅凭这个现象断定都是权限问题。</td></tr>
+<tr><td>F7结束后没有内容</td><td>核对手动高级复制后计数是否增加；边界是否已完成读取；F7本身不扫描仓库。若先前有具体错误，按该阶段的提示处理。</td></tr>
+<tr><td>截图完成后大量未匹配</td><td>查看网页未匹配原文、位置与数字，重试或手动补选。已有OCR错字或词库差异应据原文反馈，不必反复提权或重装。</td></tr>
+<tr><td>写入剪贴板失败</td><td>本批内容会保留。按浮窗提示重试，或从托盘选择“重试输出内容”，确认输出成功后再粘贴；独立输出重试成功后不会把旧边界带入下一批。</td></tr>
+<tr><td>提示缺组件、版本不一致、模型检查失败</td><td>退出采集器，从“国服海图采集器维护”选择“修复安装”；若维护入口本身缺失，重新取得完整候选、全部解压后双击中文安装入口。</td></tr>
+<tr><td>下载中断、文件校验失败</td><td>保留失败阶段，重试同一入口；网络无法取得固定组件时，使用对应版本的完整离线包。校验失败不会执行该组件，也不应报告安装成功。</td></tr>
+<tr><td>窗口关闭太快，或维护入口提示文件缺失</td><td>从已解压目录双击中文CMD，保留错误；重新解压完整候选可恢复缺失入口，不要猜命令或改全局设置。</td></tr>
+<tr><td>系统或组织策略拦截</td><td>保留窗口提示并联系设备管理员，不关闭防护或永久放宽全局策略。</td></tr>
+<tr><td>更新提示工具仍在运行</td><td>先等待边界读取完成，按F7结束并导出当前批次，再从托盘退出，回维护入口重试。</td></tr>
+</tbody></table>
+<h2 id="diagnostics">查看诊断与反馈</h2>
+<p>采集阶段有问题时，从任务栏右下角找到采集器图标，右键选择“查看本地诊断”。它会打开本机的最近一份采集诊断，包含时间、工具/OCR/模型兼容版本、权限、失败阶段及最近一次边界文字。若新截图失败但诊断中仍有边界文字，请看原文取得时间；旧文字不代表本次截图成功。维护问题可从桌面“国服海图采集器维护”选择“查看版本与诊断”；安装失败窗口也会显示本地记录位置。</p>
+<p>诊断保存在本机，不自动上传。采集诊断不保存一般剪贴板内容、海图原文或整张截图；需要反馈时先查看内容，由你自行选择提交。网页未匹配文字也可以逐槽查看。不要提供账号密码；截图只由你主动选取并提供。</p>
+<h2 id="maintenance">更新、修复与卸载</h2>
+<p>入口：桌面“国服海图采集器维护”，或采集器托盘“更新、修复与卸载”；解压包内也有“维护国服海图采集器.cmd”。维护窗口按提示输入选项数字；确认更新或卸载时输入窗口要求的“更新”或“卸载”，直接回车可取消，无需输入系统命令。</p>
+<p><strong>从旧版升级</strong>：0.2.2或0.2.3没有安装维护入口时，请取得新的候选ZIP、全部解压，双击<strong>新包里的“安装或更新国服海图采集器.cmd”</strong>，核对当前版本、目标版本和变化说明后确认；取消保留旧版。无需寻找旧版不存在的维护菜单。</p>
+<p><strong>更新</strong>：先结束并导出批次，再从托盘“退出”。取得目标版本的候选ZIP，打开维护入口，选择“更新采集器”，选中已下载的包，核对当前版本、目标版本与变化说明后确认。取消不改旧版；新文件下载、校验或自检失败时保留旧可用版本，按具体失败阶段重试。旧版准备成功后可离线采集，联网更新失败不应使其失效。</p>
+<p><strong>修复</strong>：选择“修复安装”，沿登记的固定来源检查并补回缺失或损坏组件。若本机保留的源包也损坏，按窗口提示重新取得完整候选、全部解压，再双击“安装或更新国服海图采集器.cmd”。不要手动编辑版本清单。只有重新自检成功才算恢复可用。</p>
+<p><strong>卸载</strong>：先结束导出并退出采集器，再选择“卸载采集器”，阅读移除范围后确认。只移除登记属于本工具的组件和快捷方式；网页库存/规划、本地诊断、主动保存的截图和样本、共享微软组件保留。无需卸载浏览器或清空网页数据。仍在运行时会要求先退出，不会自动结束正在采集的实例。</p>
+<h2 id="exit">日常退出</h2>
+<p>先按当前流程完成输出并导入，再到任务栏右下角找到采集器图标；图标可能在隐藏图标里。右键选择“退出”。维护窗口里的“退出维护”只退出维护流程。</p>
+<details id="candidate"><summary>候选版本、准确大小与验收信息</summary>
+<p>当前没有公开发布的下载链接；本轮候选和摘要通过验收交付材料提供。未来正式分发计划使用本仓库固定版本的GitHub Releases，不承诺尚不存在的镜像。</p>
+<p><a id="release-manifest" href="../../collector-release.json">查看本候选版本清单</a>。包内的版本与文件清单、ZIP旁的摘要记录给出准确字节数、SHA-256、源提交和构建状态；使用最终交付记录，不拿旧包摘要校验新包。</p>
+<table><thead><tr><th scope="col">大小范围</th><th scope="col">固定值与边界</th></tr></thead><tbody>
+<tr><td>后续核心组件</td><td>106,974,696字节；精确校验已准备的缓存可复用。</td></tr>
+<tr><td>条件微软组件</td><td>18,731,856字节；固定依赖最高125,706,552字节，不含小启动包。完整包已经包含这些归档。</td></tr>
+<tr><td>程序与缓存</td><td>上方为独立准备目录的舍入参考，包含运行文件和保留的组件缓存；准确测量在本轮外部验收记录。它不是Windows实际磁盘分配，未含共享微软系统组件、你保留的ZIP、更新暂存或旧版本。</td></tr>
+</tbody></table>
+<p>已完成的归档/文件校验、原始截图OCR回放、网页回归和Windows语法检查，与真实Windows安装/授权验收分别记录。实际新组件加载、UAC通过/取消、真实游戏三路径、更新/修复/卸载、离线与新手首用，未执行项仍保持“未执行”，不因自动检查通过而盖为已验收。</p>
+<p>基准候选、最终候选及明确标注的坏摘要样例用途不同；坏摘要样例仅供验收拒绝流程，不能作为正常安装包。旧版升级使用新包内安装入口，不要求旧版拥有维护菜单。</p>
+</details>
+<details id="bundled-release-details" hidden><summary>查看随包版本清单</summary><pre id="bundled-release-view"></pre></details>
+<details><summary>高级手工入口</summary>
+<ol><li>从<a href="https://www.autohotkey.com/">AutoHotkey官网</a>安装v2，同版本OCR运行组件和模型需完整保留在脚本旁；不要用v1运行本脚本。</li><li>需与管理员游戏同等权限时，右键本脚本，必要时先点“显示更多选项”，选择“以管理员身份运行”；正常UAC由你确认。若没有该选项，请使用候选安装包的桌面主入口，不修改文件关联。不要禁用UAC或依赖隐藏提权。</li><li>先核对浮窗版本、权限和“采集器已就绪”，再按本文采集。普通玩家使用安装/修复入口；单独双击裸脚本不能替代完整组件准备。</li></ol>
+</details>
+<footer>来源：<a href="https://github.com/ren2019/allflame-voyage-cn/pull/78">本项目集成PR #78</a>。本项目脚本未作受信任发布者签名。项目与第三方许可随候选保留，不自动公开发布、安装或上传资料。</footer>
+<script id="collector-bundled-release" type="application/json">{}</script>
+<script>
+(() => {
+  const root = document.documentElement, toggle = document.getElementById('theme-toggle');
+  const apply = theme => { root.dataset.theme = theme; toggle.textContent = theme === 'dark' ? '浅色' : '深色'; toggle.setAttribute('aria-label', theme === 'dark' ? '切换到浅色主题' : '切换到深色主题'); };
+  try { apply(['light', 'harvest'].includes(localStorage.getItem('theme')) ? 'light' : 'dark'); } catch { apply('dark'); }
+  toggle.addEventListener('click', () => { const theme = root.dataset.theme === 'dark' ? 'light' : 'dark'; apply(theme); try { localStorage.setItem('theme', theme); } catch {} });
+  const valid = value => value && value.schemaVersion === 1 && value.id === 'voyage-clip-collector-cn' && value.channel === 'candidate' && typeof value.version === 'string' && /^\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(value.version);
+  const status = document.getElementById('guide-version');
+  const show = value => { if (!valid(value)) throw new Error('Invalid manifest'); status.textContent = '候选版本 v' + value.version + ' · Windows x64目标，真实Windows/游戏/新手验收待完成'; };
+  const unavailable = () => { status.textContent = '当前候选版本暂不可读取，请核对随包清单与安装窗口；本页步骤仍可使用。'; };
+  let bundled = {}; try { bundled = JSON.parse(document.getElementById('collector-bundled-release').textContent); } catch {}
+  if (valid(bundled)) {
+    show(bundled);
+    const details = document.getElementById('bundled-release-details');
+    details.hidden = false;
+    document.getElementById('bundled-release-view').textContent = JSON.stringify(bundled, null, 2);
+    const link = document.getElementById('release-manifest');
+    link.href = '#bundled-release-details';
+    link.addEventListener('click', () => { details.open = true; });
+    return;
+  }
+  if (location.protocol === 'file:') { unavailable(); return; }
+  fetch(document.getElementById('release-manifest').href).then(response => { if (!response.ok) throw new Error('Unavailable'); return response.json(); }).then(show).catch(unavailable);
+})();
+</script>
+</body></html>
