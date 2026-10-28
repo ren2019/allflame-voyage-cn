@@ -2,6 +2,7 @@ import { BorderSelect } from './BorderSelect'
 import { BorderAffinity } from './BorderAffinity'
 import { RegionTargets, RegionTargetDetails } from './RegionTargets'
 import { regionalTargetView, regionTargets, type RegionalCell, type RegionTargetMode } from '../logic/regionTargets'
+import { regionActionOrder, type RegionAction, type RegionCondition } from '../logic/regionActionOrder'
 import { evaluateBorderAffinity } from '../logic/borderAffinity'
 import type { ScoreOptions } from '../logic/scoring'
 import { useId, useState, type ReactNode } from 'react'
@@ -64,6 +65,8 @@ function Tile({
   region,
   cellIndex,
   onTargetDetails,
+  actions,
+  conditions,
 }: {
   placement: Placement | null
   chart: ChartData | null
@@ -74,6 +77,8 @@ function Tile({
   placing: boolean
   isStart: boolean
   region?: RegionalCell
+  actions: RegionAction[]
+  conditions: RegionCondition[]
   cellIndex: number
   onTargetDetails: () => void
   edgeStatus: EdgeStatus[]
@@ -119,7 +124,7 @@ function Tile({
   const primary = mods.find((m) => m!.scope !== 'self') ?? mods[0]
   return (
     <div
-      className={`tile ${region ? 'with-region-targets' : ''} ${selected ? 'selected' : ''} ${highlighted ? 'highlighted' : ''} ${chart.preserved ? 'preserved' : ''} ${primary ? `tscope-${primary.scope}` : ''}`}
+      className={`tile ${region || actions.length || conditions.length ? 'with-region-targets' : ''} ${actions.length || conditions.length ? 'with-region-actions' : ''} ${selected ? 'selected' : ''} ${highlighted ? 'highlighted' : ''} ${chart.preserved ? 'preserved' : ''} ${primary ? `tscope-${primary.scope}` : ''}`}
       onClick={onClick}
       {...tt}
     >
@@ -211,10 +216,29 @@ function Tile({
           ✕
         </button>
       </div>
-      {region && <RegionTargets cell={region} index={cellIndex} onDetails={onTargetDetails} />}
+      {(region || actions.length > 0 || conditions.length > 0) && (
+        <div className="region-overlay">
+          {(actions.length > 0 || conditions.length > 0) && (
+            <div className="region-actions" role="group" aria-label={`区域 ${cellIndex + 1} 打法顺序`}>
+              {actions.map(action => (
+                <div className="region-action" role="note" key={action.order} aria-label={`打法行动 ${action.order}：${action.label}${action.condition ? `，${action.condition}` : ''}`}>
+                  <span className="region-action-number" aria-hidden="true">{action.order}</span>
+                  <span className="region-action-copy" aria-hidden="true"><b>{action.label}</b>{action.condition && <small>{action.condition}</small>}</span>
+                </div>
+              ))}
+              {conditions.map(condition => (
+                <div className="region-action region-action-condition" key={condition.cell}>
+                  <span className="region-action-copy"><b>{condition.label}</b><small>{condition.condition}</small></span>
+                </div>
+              ))}
+            </div>
+          )}
+          {region && <RegionTargets cell={region} index={cellIndex} onDetails={onTargetDetails} />}
+        </div>
+      )}
       {startBadge}
       <span className="tile-lvl">区域 {chart.level}</span>
-      <div className="tile-score">{score.toFixed(1)}</div>
+      <div className="tile-score"><span className="tile-score-label">评分 </span>{score.toFixed(1)}</div>
     </div>
   )
 }
@@ -228,10 +252,12 @@ const DIRS = [
 
 export function BoardView(props: Props) {
   const { board, borders, charts } = props
+  const [showActionOrder, setShowActionOrder] = useState(true)
   const [targetMode, setTargetMode] = useState<RegionTargetMode>('off')
   const targetModeName = useId()
   const [detailCell, setDetailCell] = useState<number | null>(null)
   const targets = regionTargets(board, borders, charts, props.strategyId ?? null, props.scoreOptions)
+  const actionOrder = regionActionOrder(board, charts, props.strategyId ?? null, targets)
   const targetViews = targets.map(cell => regionalTargetView(cell, targetMode === 'valuable' ? 'valuable' : 'all'))
   const affinity = evaluateBorderAffinity(props.strategyId ?? null, borders)
 
@@ -266,6 +292,8 @@ export function BoardView(props: Props) {
         key={i}
         cellIndex={i}
         region={targetMode === 'off' || (targetMode === 'valuable' && targetViews[i].groups.length === 0) ? undefined : targetViews[i]}
+        actions={showActionOrder ? actionOrder.actions.filter(action => action.cell === i) : []}
+        conditions={showActionOrder ? actionOrder.conditions.filter(condition => condition.cell === i) : []}
         onTargetDetails={() => setDetailCell(i)}
         placement={p}
         chart={p ? charts.get(p.chartUid) ?? null : null}
@@ -305,6 +333,10 @@ export function BoardView(props: Props) {
       <div className="board-toolbar">
         <span className="board-title">航程摆盘</span>
         <span className="spacer" />
+        <label className="region-action-toggle">
+          <input type="checkbox" checked={showActionOrder} onChange={event => setShowActionOrder(event.target.checked)} />
+          打法顺序
+        </label>
         <div className="region-target-control" role="radiogroup" aria-label="区域目标">
           <span className="region-target-control-label" aria-hidden="true">区域目标</span>
           {([['off', '关闭'], ['valuable', '高价值'], ['all', '全部']] as const).map(([mode, label]) => (
@@ -315,6 +347,7 @@ export function BoardView(props: Props) {
           ))}
         </div>
       </div>
+      {showActionOrder && actionOrder.note && <p className="region-action-note">{actionOrder.note}</p>}
       <BorderAffinity strategyId={props.strategyId ?? null} borders={borders}>
         <button onClick={clearBorders}>清空边界</button>
       </BorderAffinity>
