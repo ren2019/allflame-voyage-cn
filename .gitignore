@@ -8,7 +8,7 @@ test-results/
 *.ahk
 voyage-import*.ini
 # ...but the downloadable copy served by the site IS tracked
-!public/voyage-clip-collector.ahk
+!public/voyage-clip-collector-cn.ahk
 
 verification-results/
 
@@ -27,3 +27,7 @@ Thumbs.db
 coverage/
 .local-site-*/
 .private/
+
+# Local Python OCR replay bytecode
+__pycache__/
+*.pyc

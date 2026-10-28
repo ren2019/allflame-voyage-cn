@@ -61,3 +61,11 @@
 | [target-icons/strongbox.svg](public/target-icons/strongbox.svg) | 侦探保险箱、神圣秘宝／占卜师箱、奥术师保险箱、普通保险箱、锚地沉没宝藏、目的地命运卡箱 | Delapouite | [来源](https://game-icons.net/1x1/delapouite/chest.html)；CC-BY-3.0 |
 | [target-icons/sunken-totems.webp](public/target-icons/sunken-totems.webp) | 沉没图腾精英遭遇 | Grinding Gear Games | [来源](https://poedb.tw/us/Archnemesis_league)；Path of Exile game artwork; copyright Grinding Gear Games; not CC-BY |
 | [target-icons/treasure-anchor.svg](public/target-icons/treasure-anchor.svg) | 宝藏锚 | Lorc | [来源](https://game-icons.net/1x1/lorc/anchor.html)；CC-BY-3.0 |
+
+## 国服采集器的本地 OCR 组件
+
+候选使用 [RapidOCR v1.4.4](https://github.com/RapidAI/RapidOCR/tree/v1.4.4)（Apache-2.0）运行 PaddleOCR 中文 ONNX 模型；模型版权属于 Baidu，原项目为 [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR/tree/v2.7.3)（Apache-2.0）。原始许可随 `public/collector/licenses/` 提供。模型不是本项目训练或拥有的素材。
+
+固定版本 Python、ONNX Runtime、NumPy、OpenCV、Pillow、Shapely/GEOS 和其余运行依赖见 `public/collector/ocr-runtime.json`：每个 Windows wheel 的许可声明及实际许可文件路径已记录，分发时必须保留完整许可和第三方声明；Shapely 包含 GEOS 的许可，OpenCV 与 NumPy 包含各自捆绑库声明。Python 的 `LICENSE.txt` 随官方 embeddable archive 保留。安装候选不得只复制 DLL/模型而删除这些原始许可文件。
+
+安装候选另使用官方 [AutoHotkey v2.0.31](https://github.com/AutoHotkey/AutoHotkey/tree/v2.0.31)，保留原归档中的 GPL v2 `license.txt` 和对应源码入口。需要时使用原始、未修改的 [Microsoft Visual C++ v14 Redistributable](https://learn.microsoft.com/cpp/windows/latest-supported-vc-redist) 安装包，保留微软包内许可并由玩家通过原厂许可窗口及正常管理员授权安装；不将共享微软组件作为本工具卸载范围。固定 URL、版本、摘要、大小及签名预期在 `public/collector/install-runtime.json`，不把这些第三方组件改称本项目所有或声称本项目脚本已有微软签名。

@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import { ALL_GOOD_MODS_REGEX, RARE_IMPLICITS } from '../data/strategies'
-import { parseBorderOcrPayload } from '../logic/borderOcr'
+import { parseBorderOcrPayload, type BorderOcrMiss } from '../logic/borderOcr'
 import { isChartClipboardText, parseChartText } from '../logic/parser'
 import { dedupeNewCharts, type ImportHit } from '../logic/importDedupe'
 import type { AppState } from '../logic/storage'
 import { defaultState } from '../logic/storage'
 import type { ChartData } from '../types'
 import { CompactCopyText } from './CompactCopyText'
+import { CollectorInstall } from './CollectorInstall'
 
 interface Props {
   onFeedback?: (hits: ImportHit[]) => void
@@ -19,6 +20,7 @@ interface Props {
 export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
+  const [borderMisses, setBorderMisses] = useState<BorderOcrMiss[]>([])
   const successfulImports = useRef(0)
   // celebratory alert when an import brings in rare-implicit (Divine fuel) charts
   const [rareAlert, setRareAlert] = useState('')
@@ -26,6 +28,7 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
   const doParse = useCallback((raw?: string) => {
     const source = raw ?? text
     const borderOcr = parseBorderOcrPayload(source)
+    setBorderMisses(borderOcr.misses)
     const { charts, rejected } = parseChartText(borderOcr.chartText)
     const notCharted = rejected.filter((r) => r.reason.startsWith('not charted'))
     if (charts.length === 0 && rejected.length === 0 && borderOcr.blockCount === 0) {
@@ -157,6 +160,13 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
         </button>
       </div>
       <div className="import-result muted pad" role="status" aria-live="polite" aria-atomic="true">{msg}</div>
+      {borderMisses.length > 0 && <details className="import-border-misses">
+        <summary>查看未匹配边界文字（{borderMisses.length}处）</summary>
+        <p>对照游戏核对完整原文；可重新按住 Alt 后 F8 读取，或在摆盘边界手动补选。OCR 错字不等于权限问题。</p>
+        <ol>{borderMisses.map((miss, i) => <li key={`${miss.index}-${i}`}>
+          位置 {miss.index + 1}<pre style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{miss.raw}</pre>
+        </li>)}</ol>
+      </details>}
       {rareAlert && (
         <div className="import-rare-alert">
           <span>🎰 {rareAlert}</span>
@@ -166,6 +176,7 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
         </div>
       )}
 
+      <CollectorInstall />
       <details className="import-reference">
         <summary>导入说明与搜索参考</summary>
         <details className="ahk-help">
@@ -180,56 +191,6 @@ export function ImportPanel({ onImport, onFeedback, state, onLoadState }: Props)
           <CompactCopyText label="硫磺 75% 以上（污秽蟹群，英文参考）" text={'"sul.*(7[5-9]|[89].|\\d..)%"'} />
         </details>
 
-        <details className="ahk-help">
-          <summary>📋 国服海图与边界采集器（Windows）</summary>
-          <p className="muted">
-            采集器<strong>不会向游戏发送按键或点击</strong>。所有按键由玩家自己操作；
-            脚本读取主动复制的剪贴板内容，以及玩家按住 Alt 时的截图。
-            边界使用 Windows 本地简体中文 OCR，不上传图片。
-          </p>
-          <a
-            className="ahk-dl"
-            href={`${import.meta.env.BASE_URL}voyage-clip-collector.ahk`}
-            download
-          >
-            ⬇ 下载国服 voyage-clip-collector.ahk
-          </a>
-          <ol className="ahk-steps">
-            <li>
-              安装{' '}
-              <a href="https://www.autohotkey.com/" target="_blank" rel="noopener noreferrer">
-                AutoHotkey v2
-              </a>{' '}
-              后运行脚本（在系统托盘中）。
-            </li>
-            <li>
-              按 <kbd>F7</kbd> 开启采集，放大的中文计数浮窗显示海图数量、操作状态和采集错误。
-            </li>
-            <li>
-              在国服逐张悬停已测绘海图，自行按 <kbd>Ctrl+C</kbd> 复制（已实测可用）；需要完整高级属性时使用 <kbd>Ctrl+Alt+C</kbd>，计数器增加。
-              非海图和连续相同的海图文本会被忽略。
-            </li>
-            <li>
-              边界采集：<strong>按住 Alt</strong> 显示全部 12 个边界悬停提示，按{' '}
-              <kbd>F8</kbd>，听到截图完成提示音或看到浮窗提示后松开；文字在本机读取并加入批次。
-            </li>
-            <li>
-              再次按 <kbd>F7</kbd>，切回本页并按 <kbd>Ctrl+V</kbd>，一次导入海图与边界；
-              已在库存中的海图会跳过。
-            </li>
-          </ol>
-          <p className="muted small">
-            只更新边界时可单独按住 Alt 后按 F8，完成后直接在网页 Ctrl+V。
-            浮窗的边界数量表示已读取文字，最终词缀匹配数量和失败位置以网页反馈为准；未匹配的位置可点击外圈槽位手动选择。
-          </p>
-          <p className="muted small">
-            缺少简体中文 OCR 时，浮窗会提示安装方法；可在 Windows 设置的简体中文语言选项中安装光学字符识别组件，再按 F8 重试。
-          </p>
-          <p className="muted small">
-            <kbd>Shift+F7</kbd> 可关闭提示音，屏幕计数器继续工作。
-            游戏与采集器需要相同的权限级别才能响应快捷键。
-          </p>
-        </details>
         <p className="muted small">
           旧版自动批量操作脚本保持停用；上方被动采集器由玩家手动复制和截图，不会自动操作游戏。
         </p>

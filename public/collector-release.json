@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "voyage-clip-collector-cn",
+  "version": "0.2.5",
+  "script": "voyage-clip-collector-cn.ahk",
+  "channel": "candidate",
+  "compatibility": {
+    "autoHotkeyMajor": 2,
+    "borderPayload": 1,
+    "ocrRuntime": "collector/ocr-runtime.json",
+    "chineseOcr": "RapidOCR-ONNXRuntime 1.4.4 / PaddleOCRv4",
+    "autoHotkeyVersion": "2.0.31",
+    "installRuntime": "collector/install-runtime.json"
+  },
+  "changes": [
+    "海图剪贴板读取失败保留阶段原因和本地诊断，重新成功读取或新批次后恢复。",
+    "维护回滚共用既有登记文件清理，继续保留改动和用户资料。",
+    "网页候选版本请求完成后再忽略过期响应，不因页面清理主动取消。"
+  ]
+}

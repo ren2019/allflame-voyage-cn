@@ -1,5 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
-#SingleInstance Force
+#SingleInstance Ignore
 Persistent
 
 ; =====================================================================
@@ -21,7 +21,7 @@ Persistent
 ;  F8 - border screenshot scan
 ;   1. In PoE, HOLD Alt yourself so all 12 border tooltips are shown.
 ;   2. Press F8. A beep tells you the screenshot is taken - let go.
-;   3. Windows OCR reads the 12 tooltips locally (nothing is uploaded,
+;   3. RapidOCR reads Chinese tooltips locally; other languages use Windows OCR (nothing is uploaded,
 ;      nothing leaves your PC) and the result lands on the clipboard -
 ;      or joins the F7 batch if copy mode is on.
 ;
@@ -34,7 +34,15 @@ Persistent
 ;  or its hotkeys won't register while the game window is focused.
 ; =====================================================================
 
-CollectorVersion := "2026-10-28-cn-readable"
+CollectorId := "voyage-clip-collector-cn"
+CollectorVersion := "0.2.5"
+CollectorReady := false
+CollectorInstallRoot := ""
+CollectorInstanceHandle := 0
+for i, arg in A_Args {
+    if (arg = "--install-root" && i < A_Args.Length)
+        CollectorInstallRoot := A_Args[i + 1]
+}
 
 Collecting := false
 Collected := []
@@ -45,6 +53,15 @@ BorderCount := 0
 Muted := false
 StatusMessage := ""
 Scanning := false
+ScanPhase := ""
+LastFailure := ""
+LastScanFailure := ""
+LastReadFailure := ""
+RecentOutput := ""
+RecentOutputNote := ""
+LastBorderBlob := ""
+LastBorderTime := ""
+LastDiagnosticPath := ""
 
 ; every sound goes through here so Shift+F7 can silence the lot
 Beep(freq, dur) {
@@ -71,8 +88,8 @@ ShowStatus(message, duration := 0) {
 }
 
 ClearStatus() {
-    global StatusMessage
-    StatusMessage := ""
+    global StatusMessage, LastFailure, Scanning
+    StatusMessage := Scanning ? ScanWaitMessage() : LastFailure
     ShowCounter()
 }
 
@@ -107,7 +124,7 @@ IsChartText(text) {
 }
 
 ShowCounter() {
-    global Collecting, Collected, BorderCount, StatusMessage
+    global Collecting, Collected, BorderCount, StatusMessage, CollectorId, CollectorVersion
     text := ""
     if Collecting {
         text := "📋 采集中：" Collected.Length " 张海图"
@@ -116,6 +133,8 @@ ShowCounter() {
     }
     if (StatusMessage != "")
         text .= (text = "" ? "" : "`n") StatusMessage
+    if (text != "")
+        text := CollectorId " v" CollectorVersion "`n" text
     ShowCollectorStatus(text)
 }
 
@@ -142,19 +161,33 @@ ShowCollectorStatus(text) {
 }
 
 OnClipChanged(dataType) {
-    global Collecting, Collected, LastCaptured, LastCopiedLanguage
+    global Collecting, Collected, LastCaptured, LastCopiedLanguage, LastFailure, LastReadFailure
     if (!Collecting || dataType != 1)
         return
     text := ""
     try text := A_Clipboard
     catch {
-        ShowStatus("读取剪贴板失败，请重新手动复制海图。", 5000)
+        if (LastReadFailure != "")
+            LastFailure := Trim(StrReplace(LastFailure, LastReadFailure), "`r`n")
+        LastReadFailure := "海图读取失败：读取剪贴板失败。请重新手动 Ctrl+Alt+C 复制并核对计数；若已结束空批次，先按 F7 新建采集。"
+        LastFailure := LastFailure (LastFailure != "" ? "`n" : "") LastReadFailure
+        SaveCollectorDiagnostic("剪贴板读取", LastFailure)
+        ShowStatus(LastFailure)
         return
     }
     if (text = "")
         return
     if !IsChartText(text)
         return
+    if (LastReadFailure != "") {
+        ; A valid chart read recovers this phase only, including a duplicate.
+        ; Do not log the clipboard text or clear an unrelated output/OCR error.
+        LastFailure := Trim(StrReplace(LastFailure, LastReadFailure), "`r`n")
+        LastReadFailure := ""
+        recovered := "海图读取已恢复，请核对采集计数。" (LastFailure != "" ? "`n" LastFailure : "")
+        SaveCollectorDiagnostic("剪贴板读取恢复", recovered)
+        ShowStatus(recovered, 5000)
+    }
     LastCopiedLanguage := ChartLanguage(text)
     ; double-tap protection: the SAME chart copied twice in a row is one
     ; chart (two different-but-identical charts still count when they are
@@ -168,18 +201,112 @@ OnClipChanged(dataType) {
 }
 OnClipboardChange OnClipChanged
 
+ScanWaitMessage() {
+    global ScanPhase
+    return ScanPhase = "截图中"
+        ? "正在截图，请继续按住 Alt；截图完成前不要结束批次。"
+        : "截图已完成，可以松开 Alt；正在识别中，请等待完成后再按 F7。"
+}
+
+SaveCollectorDiagnostic(stage, message) {
+    global CollectorInstallRoot, TempDir, CollectorVersion, LastBorderBlob, LastBorderTime, LastDiagnosticPath
+    root := CollectorInstallRoot != "" ? CollectorInstallRoot "\diagnostics" : TempDir "\voyage-clip-collector-cn-diagnostics"
+    try {
+        DirCreate root
+        path := root "\collector-last.txt"
+        record := "国服采集器 v" CollectorVersion "`n权限模式：" (A_IsAdmin ? "管理员" : "普通权限")
+            . "`n阶段：" stage "`n时间：" FormatTime(, "yyyy-MM-dd HH:mm:ss")
+            . "`n" message "`n不自动上传；不记录一般剪贴板、海图原文或截图。"
+        try record .= "`nOCR/模型兼容清单：`n" FileRead(A_ScriptDir "\collector-release.json", "UTF-8")
+        if (LastBorderBlob != "")
+            record .= "`n最近一次边界原文（取得时间：" LastBorderTime "；后续截图失败不表示旧原文属于本次）：`n" LastBorderBlob
+        file := FileOpen(path ".tmp", "w", "UTF-8")
+        file.Write(record)
+        file.Close()
+        FileMove path ".tmp", path, true
+        LastDiagnosticPath := path
+    } catch {
+        LastDiagnosticPath := ""
+    }
+}
+
+ShowCollectorDiagnostic(*) {
+    global LastDiagnosticPath, LastFailure
+    if (LastDiagnosticPath = "")
+        SaveCollectorDiagnostic("状态", LastFailure != "" ? LastFailure : "尚无边界读取记录。")
+    if (LastDiagnosticPath != "" && FileExist(LastDiagnosticPath)) {
+        try Run 'notepad.exe "' LastDiagnosticPath '"'
+        catch
+            ShowStatus("无法打开记事本。请手动查看本地诊断：" LastDiagnosticPath)
+    } else
+        ShowStatus("本地诊断未能保存；请保留浮窗的具体错误原文。" (LastFailure != "" ? "`n" LastFailure : ""))
+}
+
+WriteCollectorOutput(content, note) {
+    global RecentOutput, RecentOutputNote, LastFailure, LastScanFailure, LastReadFailure
+    RecentOutput := content
+    RecentOutputNote := note
+    try A_Clipboard := content
+    catch {
+        LastFailure := "输出失败：写入剪贴板失败，内容已保留。请从托盘选择“重试输出内容”，或在采集批次中再按 F7。"
+        SaveCollectorDiagnostic("剪贴板输出", LastFailure)
+        ShowStatus(LastFailure)
+        return false
+    }
+    LastFailure := LastScanFailure (LastScanFailure != "" && LastReadFailure != "" ? "`n" : "") LastReadFailure
+    message := note "`n内容已输出到剪贴板，请回网页 Ctrl+V；词缀匹配以网页结果为准。"
+    if (LastFailure != "")
+        message .= "`n" LastFailure
+    SaveCollectorDiagnostic("内容已输出", message)
+    ShowStatus(message)
+    Beep(1200, 90)
+    return true
+}
+
+RetryCollectorOutput(*) {
+    global Scanning, Collecting, RecentOutput, RecentOutputNote, LastFailure, BorderBlob, BorderCount
+    if Scanning {
+        ShowStatus(ScanWaitMessage())
+        return
+    }
+    if Collecting {
+        ToggleCollect()
+        return
+    }
+    if (RecentOutput = "") {
+        ShowStatus("尚无可重试的输出。海图请 F7 开始后逐张手动 Ctrl+Alt+C；边界请按住 Alt 后 F8。" (LastFailure != "" ? "`n" LastFailure : ""))
+        return
+    }
+    if WriteCollectorOutput(RecentOutput, RecentOutputNote) {
+        BorderBlob := ""
+        BorderCount := 0
+    }
+}
+
 ToggleCollect(*) {
-    global Collecting, Collected, LastCaptured, BorderBlob, BorderCount
+    global Collecting, Collected, LastCaptured, BorderBlob, BorderCount, CollectorReady, Scanning, LastFailure, LastScanFailure, LastReadFailure
+    if !CollectorReady {
+        ShowStatus(LastFailure != "" ? LastFailure : "采集器尚未就绪。请等待模型检查，或使用安装入口修复组件；不要开始采集。")
+        return
+    }
+    if Scanning {
+        ShowStatus(ScanWaitMessage())
+        return
+    }
     if !Collecting {
         Collecting := true
         Collected := []
         LastCaptured := ""
-        ShowStatus("")
+        LastFailure := ""
+        LastScanFailure := ""
+        LastReadFailure := ""
+        ShowStatus("海图采集已开始。请逐张悬停并手动 Ctrl+Alt+C；F7 不会自动扫描仓库。")
         return
     }
-    Collecting := false
     if (Collected.Length = 0 && BorderBlob = "") {
-        ShowStatus("采集已结束，本次没有采集到内容。", 2500)
+        Collecting := false
+        ShowStatus(LastFailure != "" ? LastFailure
+            : "本次没有采集到内容。海图：F7 开始后逐张悬停并手动 Ctrl+Alt+C，确认计数增加。`n边界：打开航程规划，按住 Alt 后 F8，看到截图完成再松 Alt；只读边界无需 F7。`n若只有游戏自己的截图提示，请从桌面入口检查权限；它不表示本工具截图成功。")
         return
     }
     combined := ""
@@ -187,19 +314,19 @@ ToggleCollect(*) {
         combined .= (combined = "" ? "" : "`n`n") chart
     if (BorderBlob != "")
         combined .= (combined = "" ? "" : "`n") BorderBlob
-    try A_Clipboard := combined
-    catch {
+    note := "本批内容：" Collected.Length " 张海图"
+    if (BorderBlob != "")
+        note .= "；已有边界文字 " BorderCount "/12（读取数量不等于网页匹配）"
+    ; Ignore our own clipboard notification; restore collection only on failure.
+    Collecting := false
+    if !WriteCollectorOutput(combined, note) {
         Collecting := true
-        ShowStatus("写入剪贴板失败，已保留本批内容；请再按 F7 重试。")
         return
     }
-    note := "✅ " Collected.Length " 张海图"
-    if (BorderCount)
-        note .= " + " BorderCount "/12 处边界文字"
-    ShowStatus(note "已放入剪贴板，请在网页 Ctrl+V 导入。`n边界词缀是否匹配，以网页结果为准。", 6000)
-    Beep(1200, 90)
     BorderBlob := ""
     BorderCount := 0
+    Collected := []
+    ShowCounter()
 }
 
 ; Process matching works independently of localized window titles, and avoids
@@ -263,11 +390,18 @@ AnchorFractions := [
 
 RunBorderScan(testImage := "", testW := 0, testH := 0) {
     global
+    if (!CollectorReady && testImage = "") {
+        ShowStatus(LastFailure != "" ? LastFailure : "边界读取尚未就绪。请等待本机模型检查，或使用安装入口修复组件。")
+        return
+    }
     if Scanning {
         ShowStatus("边界采集仍在运行，请稍候。")
         return
     }
     Scanning := true
+    ScanPhase := "截图中"
+    LastScanFailure := ""
+    LastFailure := LastReadFailure
     try {
         winX := 0, winY := 0
         winW := testW ? testW : A_ScreenWidth
@@ -280,7 +414,7 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             WinGetPos &winX, &winY, &winW, &winH, poeHwnd  ; passive read
             if (winW <= 0 || winH <= 0)
                 throw Error("游戏窗口尺寸无效，请切回游戏后重试。")
-            ShowStatus("📸 请继续按住 Alt，让十二条边界提示保持可见。")
+            ShowStatus("正在截图：请继续按住 Alt，让十二条边界提示保持可见。")
         }
         points := ""
         cx := winW / 2.0
@@ -296,6 +430,8 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             . " -Left " winX " -Top " winY " -Width " winW " -Height " winH
             . " -PointSpec " quote points quote
             . " -PreferredLanguage " quote PreferredOcrLanguage(poeHwnd) quote
+            . " -RapidPython " quote A_ScriptDir "\runtime\python\python.exe" quote
+            . " -RapidHelper " quote A_ScriptDir "\collector\border_ocr.py" quote
             . " -WorkPng " quote HelperPng quote
             . " -ShotMarker " quote HelperShot quote
             . " -OutputPath " quote HelperOut quote
@@ -311,7 +447,8 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
             Sleep 50
         if FileExist(HelperShot) {
             Beep(700, 90)
-            ShowStatus("截图已完成，可以松开 Alt。`n正在本机读取边界文字，不上传图片。")
+            ScanPhase := "识别中"
+            ShowStatus("截图已完成，可以松开 Alt。`n正在本机识别边界文字，不上传图片；请等待完成后再按 F7。")
         } else if !FileExist(HelperOut) {
             throw Error("截图未完成或等待超时。可以松开 Alt，请切回游戏后重试。")
         }
@@ -339,29 +476,42 @@ RunBorderScan(testImage := "", testW := 0, testH := 0) {
         good := total - errors
         if (total = 0)
             throw Error("OCR 没有输出边界文字。请按住 Alt 显示边界后重试。")
+        ScanPhase := "读取完成"
         BorderBlob := blob
         BorderCount := good
+        LastBorderBlob := blob
+        LastBorderTime := FormatTime(, "yyyy-MM-dd HH:mm:ss")
         note := "已读取 " good "/12 处边界文字，词缀匹配以网页结果为准。"
         if (errors && RegExMatch(blob, "s)OCR ERROR:[ \t]*(.*?)\r?\n=== END VOYAGE BORDER", &failure))
             note .= "`n" SubStr(Trim(failure[1], " `t`r`n"), 1, 400)
         if (good < 12)
-            note .= "`n未读取的位置可在网页手动选择。"
+            note .= "`n未读取的位置可按住 Alt 后 F8 重试，或在网页手动补选。"
+        if (errors) {
+            LastScanFailure := "文字读取含失败位置，请查看托盘“查看本地诊断”或网页未匹配原文。"
+            LastFailure := LastScanFailure (LastReadFailure != "" ? "`n" LastReadFailure : "")
+        }
+        SaveCollectorDiagnostic("文字读取完成", note (LastReadFailure != "" ? "`n" LastReadFailure : ""))
         if Collecting {
             Beep(good ? 1000 : 300, 90)
-            ShowStatus(note)
+            ShowStatus(note "`n已加入当前批次，请再按 F7 统一输出海图和边界。" (LastReadFailure != "" ? "`n" LastReadFailure : ""))
         } else {
-            A_Clipboard := blob
-            Beep(good ? 1200 : 300, 90)
-            ShowStatus(note "`n已放入剪贴板，请在网页 Ctrl+V 导入。", good = 12 ? 6000 : 0)
+            if WriteCollectorOutput(blob, note) {
+                BorderBlob := ""
+                BorderCount := 0
+            }
         }
     } catch Error as err {
-        ShowStatus("边界采集失败，可以松开 Alt；仍可在网页手动选择。`n" SubStr(err.Message, 1, 500))
+        LastScanFailure := ScanPhase "失败，可以松开 Alt。`n" SubStr(err.Message, 1, 500) "`n请查看本地诊断，重试 F8 或在网页手动补选；不要将 OCR 错字都归因于权限。"
+        LastFailure := LastScanFailure (LastReadFailure != "" ? "`n" LastReadFailure : "")
+        SaveCollectorDiagnostic(ScanPhase, LastFailure)
+        ShowStatus(LastFailure)
         Beep(300, 150)
     } finally {
         if (HelperPid && ProcessExist(HelperPid))
             try ProcessClose HelperPid
         HelperPid := 0
         Scanning := false
+        ScanPhase := ""
     }
 }
 
@@ -374,12 +524,117 @@ F7:: ToggleCollect()
 *F8:: RunBorderScan()
 +F7:: ToggleMute()
 
-A_TrayMenu.Insert("1&", "开启或结束海图采集 (F7)", ToggleCollect)
-A_TrayMenu.Insert("2&", "读取边界 (F8)", (*) => RunBorderScan())
-A_TrayMenu.Insert("3&", "切换提示音 (Shift+F7)", ToggleMute)
+A_TrayMenu.Delete()
+A_TrayMenu.Add("开启或结束海图采集 (F7)", ToggleCollect)
+A_TrayMenu.Add("读取边界 (F8)", (*) => RunBorderScan())
+A_TrayMenu.Add("重试输出内容", RetryCollectorOutput)
+A_TrayMenu.Add("查看本地诊断", ShowCollectorDiagnostic)
+A_TrayMenu.Add("切换提示音 (Shift+F7)", ToggleMute)
+A_TrayMenu.Add("版本与运行信息", (*) => ShowStatus(CollectorId " v" CollectorVersion "`n权限模式：" (A_IsAdmin ? "管理员" : "普通权限") "；F7 海图，F8 边界。", 10000))
+A_TrayMenu.Add("更新、修复与卸载", OpenCollectorMaintenance)
+A_TrayMenu.Add("退出", (*) => ExitApp())
 A_TrayMenu.Default := "开启或结束海图采集 (F7)"
-A_IconTip := "航程采集器：F7 海图，F8 边界"
-ShowStatus("航程采集器已就绪：F7 采集海图，F8 读取边界。`n请手动 Ctrl+C 复制海图，或 Ctrl+Alt+C 高级复制；脚本不向游戏发送输入。", 6000)
+A_IconTip := CollectorId " v" CollectorVersion "：F7 海图，F8 边界"
+InitializeCollector()
+SetTimer CheckGamePermission, 5000
+
+OpenCollectorMaintenance(*) {
+    global CollectorInstallRoot
+    if (CollectorInstallRoot = "" || !FileExist(CollectorInstallRoot "\维护国服海图采集器.cmd")) {
+        ShowStatus("维护入口缺失。请重新解压完整候选包，双击“安装或更新国服海图采集器.cmd”；不要猜测命令。")
+        return
+    }
+    Run '"' CollectorInstallRoot '\维护国服海图采集器.cmd"'
+}
+
+InitializeCollector() {
+    global CollectorReady, CollectorVersion, CollectorInstallRoot, CollectorInstanceHandle, LastFailure
+    ShowStatus("正在检查本机组件与加载中文模型，尚未就绪…")
+    try {
+        if (CollectorInstallRoot != "") {
+            CollectorInstanceHandle := DllCall("CreateFileW", "Str", CollectorInstallRoot "\collector.running.lock", "UInt", 0x40000000, "UInt", 0, "Ptr", 0, "UInt", 4, "UInt", 0x80, "Ptr", 0, "Ptr")
+            if (CollectorInstanceHandle = -1) {
+                CollectorInstanceHandle := 0
+                throw Error("本工具可能已运行，或安装目录权限不足。请保留原批次，从桌面入口核对。")
+            }
+            OnExit CloseCollectorInstance
+        }
+        manifest := FileRead(A_ScriptDir "\collector-release.json", "UTF-8")
+        if (!RegExMatch(manifest, '"version"\s*:\s*"([^"]+)"', &version) || version[1] != CollectorVersion)
+            throw Error("脚本与清单版本不一致。")
+        if (!RegExMatch(manifest, '"autoHotkeyVersion"\s*:\s*"([^"]+)"', &runtime) || runtime[1] != A_AhkVersion)
+            throw Error("AHK 运行时与固定兼容版本不一致。请使用桌面入口。")
+        python := A_ScriptDir "\runtime\python\python.exe"
+        helper := A_ScriptDir "\collector\border_ocr.py"
+        if (!FileExist(python) || !FileExist(helper))
+            throw Error("缺少本工具的 Python 或 OCR 组件。")
+        process := ComObject("WScript.Shell").Exec('"' python '" "' helper '" --self-test')
+        deadline := A_TickCount + 120000
+        while (process.Status = 0) {
+            if (A_TickCount > deadline) {
+                process.Terminate()
+                throw Error("本机模型检查超时。")
+            }
+            Sleep 100
+        }
+        output := process.StdOut.ReadAll()
+        errorText := process.StdErr.ReadAll()
+        if (process.ExitCode != 0 || !RegExMatch(output, '"ready"\s*:\s*true'))
+            throw Error("本机 OCR 自检失败：" SubStr(errorText, 1, 400))
+        CollectorReady := true
+        ShowStatus("采集器已就绪｜" (A_IsAdmin ? "管理员模式" : "普通权限") "`nF7 采集海图，F8 读取边界；请手动 Ctrl+Alt+C 复制。`n退出：任务栏右下角采集器图标 → 退出。", 10000)
+    } catch as err {
+        LastFailure := "采集器未就绪｜组件或模型检查失败。`n" err.Message "`n请退出后重新双击“安装或更新国服海图采集器.cmd”修复；不要关闭防护。"
+        SaveCollectorDiagnostic("组件自检", LastFailure)
+        ShowStatus(LastFailure)
+    }
+}
+
+CloseCollectorInstance(*) {
+    global CollectorInstanceHandle
+    if CollectorInstanceHandle
+        DllCall("CloseHandle", "Ptr", CollectorInstanceHandle)
+}
+
+GameIsElevated(pid) {
+    processHandle := DllCall("OpenProcess", "UInt", 0x1000, "Int", false, "UInt", pid, "Ptr")
+    if !processHandle
+        return -1
+    token := 0
+    try {
+        if !DllCall("Advapi32\OpenProcessToken", "Ptr", processHandle, "UInt", 8, "Ptr*", &token)
+            return -1
+        elevation := Buffer(4, 0)
+        needed := 0
+        if !DllCall("Advapi32\GetTokenInformation", "Ptr", token, "Int", 20, "Ptr", elevation.Ptr, "UInt", 4, "UInt*", &needed)
+            return -1
+        return NumGet(elevation, 0, "UInt")
+    } finally {
+        if token
+            DllCall("CloseHandle", "Ptr", token)
+        DllCall("CloseHandle", "Ptr", processHandle)
+    }
+}
+
+CheckGamePermission(*) {
+    global CollectorReady, Collecting, Scanning, StatusMessage
+    static reported := false
+    if (A_IsAdmin || !CollectorReady || Collecting || Scanning || StatusMessage != "" || reported)
+        return
+    hwnd := FindPoeWindow()
+    if !hwnd
+        return
+    try elevated := GameIsElevated(WinGetPID(hwnd))
+    catch
+        elevated := -1
+    if (elevated = 1) {
+        reported := true
+        ShowStatus("游戏以管理员权限运行，请退出旧采集器，使用桌面“国服海图采集器”重新启动。")
+    } else if (elevated = -1) {
+        reported := true
+        ShowStatus("当前为普通权限，无法确认游戏权限。若 F8 只有游戏截图，请从桌面入口重新启动并核对管理员授权；其他识别失败仍需查看具体阶段。")
+    }
+}
 
 ; ---------------------------------------------------------------------
 ; The border-reading PowerShell helper. Runs Windows OCR locally on a
@@ -397,6 +652,8 @@ param(
     [string]$PointSpec = '',
     [string]$ImagePath = '',
     [string]$PreferredLanguage = '',
+    [string]$RapidPython = '',
+    [string]$RapidHelper = '',
     [Parameter(Mandatory = $true)][string]$WorkPng,
     [Parameter(Mandatory = $true)][string]$ShotMarker,
     [Parameter(Mandatory = $true)][string]$OutputPath)
@@ -429,6 +686,21 @@ if ($ImagePath -ne '') {
     }
 }
 [System.IO.File]::WriteAllText($ShotMarker, 'SHOT')
+
+# Chinese uses the pinned offline helper. Capture/marker precede loading so
+# the status panel can tell the player exactly when to release Alt.
+if ($PreferredLanguage -like 'zh*') {
+    try {
+        if (-not (Test-Path -LiteralPath $RapidPython) -or -not (Test-Path -LiteralPath $RapidHelper)) {
+            throw '缺少国服本地识别组件。请使用安装入口准备或修复组件；裸脚本不会自动下载。仍可在网页手动选择边界。'
+        }
+        & $RapidPython $RapidHelper --image $WorkPng --points $PointSpec --output $OutputPath
+        if (-not (Test-Path -LiteralPath $OutputPath)) { throw '本地识别助手没有输出结果；请修复安装后重试。' }
+        exit $LASTEXITCODE
+    } finally {
+        Remove-Item -LiteralPath $WorkPng -Force -ErrorAction SilentlyContinue
+    }
+}
 
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 

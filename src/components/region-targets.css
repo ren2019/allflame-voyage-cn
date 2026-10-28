@@ -192,3 +192,92 @@
     font-size: 10px;
   }
 }
+
+/* Actions share the central overlay but never consume its four target icon slots. */
+.region-overlay {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 22px);
+  max-width: 155px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 4;
+}
+.region-overlay .region-targets {
+  position: static;
+  transform: none;
+  width: 100%;
+}
+.region-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  pointer-events: none;
+}
+.region-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 3px 5px;
+  max-width: 100%;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.25;
+  text-align: center;
+}
+.region-action-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 20px;
+  min-height: 20px;
+  border-radius: 50%;
+  color: var(--panel);
+  background: var(--accent);
+  font-weight: 700;
+}
+.region-action-copy { min-width: 0; }
+.region-action-copy b { font-weight: 600; }
+.region-action-copy small { display: block; color: var(--text); font-size: 11px; }
+.region-action-toggle { display: inline-flex; align-items: center; gap: 4px; color: var(--text); font-size: 12px; white-space: nowrap; }
+.region-action-toggle input { margin: 0; }
+.region-action-note { margin: 4px 0 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.tile-score-label { font-size: 10px; color: var(--muted); }
+.board-grid .tile.with-region-actions { min-height: 180px; }
+@media (max-width: 500px) {
+  .region-overlay { width: calc(100% - 12px); }
+  .region-overlay .region-targets { max-width: 75px; }
+  .region-action { gap: 3px; padding: 3px; font-size: 11px; }
+  .region-action-number { min-width: 18px; min-height: 18px; }
+  .region-action-copy small { font-size: 10px; }
+  .board-grid .tile.with-region-actions { min-height: 190px; }
+  .tile.with-region-actions .tile-score { right: 4px; font-size: 12px; }
+  .tile.with-region-actions .tile-lvl { left: 4px; font-size: 10px; }
+}
+.region-overlay { pointer-events: none; }
+.region-overlay .region-targets { pointer-events: auto; }
+
+
+@media (max-width: 500px) {
+  .board-grid .tile-score { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; line-height: 1; right: 4px; font-size: 12px; }
+  .board-grid .tile-lvl { left: 4px; font-size: 10px; }
+  .board-grid .tile .tile-start { bottom: 27px; font-size: 9px; }
+}
+
+/* Two phases can return to the same cell. Reserve space for both actions
+   and the original four icon slots without touching the footer or start. */
+.board-grid .tile.with-multiple-region-actions { min-height: 220px; }
+.tile.with-multiple-region-actions .tile-score { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; line-height: 1; }
+@media (max-width: 500px) {
+  .board-grid .tile.with-multiple-region-actions { min-height: 240px; }
+}
