@@ -139,6 +139,11 @@ function ChartEditor({ chart, onUpdate }: { chart: ChartData; onUpdate: (c: Char
           </>
         )
       })()}
+      <div className="row">
+        <button onClick={() => onUpdate({ ...chart, pendingDeletion: !chart.pendingDeletion })}>
+          {chart.pendingDeletion ? '取消待删除' : '标记待删除'}
+        </button>
+      </div>
       <div className="row edges-row">
         <span className="muted">连接方向：</span>
         {EDGE_LABELS.map((l, i) => (
@@ -323,6 +328,7 @@ export function Library(props: Props) {
               ...(lock
                 ? [{ text: `🔒 ${lock} · 其他求解不会使用它`, cls: 'muted' }]
                 : []),
+              ...(c.pendingDeletion ? [{ text: '待删除：已排除求解，可在列表编辑中取消', cls: 'muted' }] : []),
               ...(onBoard.has(c.uid) ? [{ text: '已放入当前摆盘', cls: 'muted' }] : []),
             ]
             return (
@@ -358,9 +364,6 @@ export function Library(props: Props) {
                   <EdgeGlyph edges={c.edges} size={26} />
                 )}
                 <span className="sq-footer">
-                  <button title={c.pendingDeletion ? '取消待删除' : '标记待删除'} onClick={(e) => {
-                    e.stopPropagation(); props.onUpdate({ ...c, pendingDeletion: !c.pendingDeletion })
-                  }}>{c.pendingDeletion ? '取消待删除' : '待删除'}</button>
                   <span className="sq-lvl" title={`区域等级 ${c.level}`}>{c.level}</span>
                   {mod && <CalibrationLink id={mod.id} />}
                   <button
@@ -390,6 +393,7 @@ export function Library(props: Props) {
               key={c.uid}
               data-chart-uid={c.uid}
               data-import-kind={feedbackMap.get(c.uid)}
+              title={c.pendingDeletion ? '待删除：已排除求解，可在编辑中取消' : undefined}
               className={`chart-card ${props.selected === c.uid ? 'selected' : ''} ${onBoard.has(c.uid) ? 'on-board' : ''}`}
               onClick={() => props.onSelect(c.uid)}
             >
@@ -404,9 +408,6 @@ export function Library(props: Props) {
                     onClick={event => { event.stopPropagation(); setReservationDetail(lock) }}>🔒 预留</button>
                 )}
                 {onBoard.has(c.uid) && <span className="badge">已摆入</span>}
-                <button onClick={(e) => { e.stopPropagation(); props.onUpdate({ ...c, pendingDeletion: !c.pendingDeletion }) }}>
-                  {c.pendingDeletion ? '取消待删除' : '标记待删除'}
-                </button>
                 <span className="spacer" />
                 <button
                   title="编辑"
